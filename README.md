@@ -1,8 +1,10 @@
 # cupid
-Cupid is a Multi-LLM based dating application.
+Cupid is a Multi-LLM based dating application. <br>
 Run:
-> git clone https://github.com/HEISENYAN/cupid <br>
-> cd cupid <br>
-> conda create -n cupidAgent python = 3.13.2 <br>
-> conda activate cupidAgent <br>
-> pip install requirements.txt <br>
+```
+git clone https://github.com/HEISENYAN/cupid
+cd cupid
+conda create -n cupidAgent python = 3.13.2
+conda activate cupidAgent
+pip install -r requirements.txt
+```
