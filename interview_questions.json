@@ -1,0 +1,23 @@
+[
+    {
+        "role": "assistant",
+        "content": "To get us started, can you tell me about yourself?"
+    },
+    {
+        "role": "assistant",
+        "content": "How many romantic relationships have you had, and why you broke up with them?"  
+    },
+    {
+        "role": "assistant",
+        "content": "What is your ideal preference in a romantic relationship?"
+    },
+    {
+        "role": "assistant",
+        "content": "What is your attitude towards marriage?"
+    },
+    {
+        "role": "assistant",
+        "content": "Do you think marriage relies more on economics or love?"
+    }
+
+]
