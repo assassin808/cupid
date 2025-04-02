@@ -1,5 +1,6 @@
 # cupid
-Cupid is a Multi-LLM based dating application.
+---
+Cupid is a Multi-LLM based dating application. <br>
 Run:
 ```
 git clone https://github.com/HEISENYAN/cupid
