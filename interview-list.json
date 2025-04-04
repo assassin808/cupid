@@ -2,6 +2,7 @@
     {
         "name": "Zhengyang YAN",
         "interview_date": "2025-04-01",
+        "gender": "male",
         "interview":[
             {
                 "role": "user",
@@ -60,5 +61,68 @@
                 "content": "I think my romantic partner should undertake more, for example, I think she should pay the bill for meals. Also, when we going out to purchase something, I think she should pay more than me."
             }
         ]
+    },
+    {
+        "name": "Hellen",
+        "interview_date": "2025-04-01",
+        "gender": "female",
+        "interview":[
+            {
+                "role": "user",
+                "content": "To get us started, can you tell me about yourself?"
+            },
+            {
+                "role": "assistant",
+                "content": "I am 22 years old, and I am currently a college student. My sexual orientation is homosexual. I am a female. I am 172cm tall and 50kg weight."
+            },
+            {
+                "role": "user",
+                "content": "How many romantic relationships have you had, and why you broke up with them?"
+            },
+            {
+                "role": "assistant",
+                "content": "I have had 4 romantic relationships. The first one was when I was 18 years old. We broke up because I wanted to focus on my studies. The second one was when I was 20 years old. We broke up because I wanted to focus on my career. The third one was because my ex-boyfriend cheated on me. And the last one was because he focuses too much on his career and less on me."
+            },
+            {
+                "role": "user",
+                "content": "What is your ideal preference in a romantic relationship?"
+            },
+            {
+                "role": "assistant",
+                "content": "I want a romantic relationship that is based on trust and communication. I want to be able to share my thoughts and feelings with my partner. And he should be at least 175cm tall and not more than 70kg weight."
+            },
+            {
+                "role": "user",
+                "content": "What is your attitude towards marriage?"
+            },
+            {
+                "role": "assistant",
+                "content": "I think marriage is a very important institution in society. It is a commitment between two people who love each other and want to spend the rest of their lives together."
+            },  
+            {
+                "role": "user",
+                "content": "Do you think marriage relies more on economics or love?"
+            },
+            {
+                "role": "assistant",
+                "content": "I think marriage relies more on love."
+            },
+            {
+                "role": "user",
+                "content": "Do you think you are responsible for purchasing a house when you going to a merriage?"
+            },
+            {
+                "role": "assistant",
+                "content": "No"
+            },
+            {
+                "role": "user",
+                "content": "When you are in a romantic relationship, who do you think should undertake more expense?"
+            },
+            {
+                "role": "assistant",
+                "content": "I think my romantic partner should undertake more, for example, I think she should pay the bill for meals. Also, when we going out to purchase something, I think she should pay more than me."
+            }
+        ]            
     }
 ]
