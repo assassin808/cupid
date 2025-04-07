@@ -1,3 +1,6 @@
+import { Agent } from './utiles.py'
+
+
 class ChatAgent {
     constructor(name) {
         this.name = name;
