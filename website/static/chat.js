@@ -1,3 +1,6 @@
+const userId = 1;
+const userGender = 'male'
+const userName = "Zhengyang YAN"
 class ChatAgent {
     constructor(name, id) {
         this.name = name;
@@ -13,13 +16,12 @@ class ChatAgent {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    "sender_id":1,
+                    "sender_id":userId,
                     name: this.name,
                     id: this.id,
                     content: content
                 })
             });
-            console.log(response)
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
@@ -33,7 +35,7 @@ class ChatAgent {
     }
 }
 
-const userId = 1;
+
 var History = new Object();
 // Initialize chat interface
 $(document).ready(function() {
@@ -47,8 +49,16 @@ $(document).ready(function() {
     var agents =[]
     $.ajax({
         url:"/users/get-list",
-        method:"GET",
-        async: false
+        method:"POST",
+        headers: { 
+            'Accept': 'application/json',
+            'Content-Type': 'application/json' 
+        },
+        async: false,
+        dataType:"json",
+        data:JSON.stringify({
+            user_Id:userId
+        })
     }).done(function(res){
         agents = res
     })
@@ -229,6 +239,40 @@ $(document).ready(function() {
             typingIndicator.remove();
             addMessage(response, false);
         } else if (!currentAgent) {
+            alert('Please select a chat first');
+        }
+    });
+
+    // Handle dating button click
+    $('#datingButton').click(async function() {
+        const typingIndicator = $('<div>').addClass('message bot-message typing-indicator');
+            typingIndicator.html('<div class="message-content"><span></span><span></span><span></span></div>');
+            $('.chat-messages').append(typingIndicator);
+            $('.chat-messages').scrollTop($('.chat-messages')[0].scrollHeight);
+        if (currentAgent) {
+            const response = await fetch('/users/dating', {
+                method:"POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    "user_Id":userId,
+                    user_gender: userGender,
+                    name: currentAgent.name,
+                    id: currentAgent.id,
+                    user_name: userName
+                })
+            });
+            const result = await response.json();
+            console.log(result)
+            if(result.status == 'ok'){
+                loadChatHistory().then(()=> switchChat(currentAgent.id))
+                typingIndicator.remove()
+            }
+                
+            // Add system message about dating status
+            //addMessage(result.message, false);
+        } else {
             alert('Please select a chat first');
         }
     });

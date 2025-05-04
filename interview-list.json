@@ -3,7 +3,7 @@
         "name": "Zhengyang YAN",
         "interview_date": "2025-04-01",
         "gender": "male",
-        "id":"1",
+        "id":1,
         "interview":[
             {
                 "role": "user",
@@ -67,7 +67,7 @@
         "name": "Hellen",
         "interview_date": "2025-04-01",
         "gender": "female",
-        "id":"2",
+        "id":2,
         "interview":[
             {
                 "role": "user",
@@ -131,7 +131,7 @@
         "name": "Marry",
         "interview_date": "2025-04-01",
         "gender": "female",
-        "id":"3",
+        "id":3,
         "interview":[
             {
                 "role": "user",

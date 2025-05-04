@@ -67,7 +67,7 @@ class Dating:
             response = self.male.sendMessage(question + "You should answer the question based on the interview and your feeling.")
             self.female.messages.append({"role":"assistant", "content":question})
             self.female.messages.append({"role":"user", "content":response})
-            response = self.female.sendMessage("Please give a mark for {}'s performance based on the interview and chat history, and give your mark from 1 to 5 directly give the numeric answer without any explaination, Answer:".format(self.male.name))
+            response = self.female.sendMessage("Please give a mark for {}'s performance based on the interview and chat history, and give your mark from 1 to 5 directly give the numeric answer without any explaination and symbol, Answer:".format(self.male.name))
             female_rating += int(response)
             self.female.messages.pop()
             self.female.messages.pop()
@@ -76,11 +76,11 @@ class Dating:
             response = self.female.sendMessage(question + "You should answer the question based on the interview and your feeling.")
             self.male.messages.append({"role":"assistant", "content":question})
             self.male.messages.append({"role":"user", "content":response})
-            response = self.male.sendMessage("Please give a mark for {}'s performance based on the interview and chat history, and give your mark from 1 to 5 directly give the numeric answer without any explaination, Answer:".format(self.female.name))
+            response = self.male.sendMessage("Please give a mark for {}'s performance based on the interview and chat history, and give your mark from 1 to 5 directly give the numeric answer without any explaination and symbol, Answer:".format(self.female.name))
             male_rating += int(response)
             self.male.messages.pop()
             self.male.messages.pop()
-        return female_rating, male_rating
+        return female_rating, male_rating, self.female.messages, self.male.messages
     def evaluate(self):
         female_evaluation = self.female.sendMessage("Based on the interview and chatting history, can you evaluate {}'s shortcomming and strength? Answer:".format(self.male.name))
         male_evaluation = self.male.sendMessage("Based on the interview and chatting history, can you evaluate {}'s shortcomming and strength? Answer:".format(self.female.name))
