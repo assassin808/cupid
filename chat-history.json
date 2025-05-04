@@ -5,30 +5,6 @@
             {
                 "receiver_id": 2,
                 "content": [
-                    {
-                        "type": "sent",
-                        "message": "How are you?"
-                    },
-                    {
-                        "type": "received",
-                        "message": "I'm fine thank you."
-                    },
-                    {
-                        "type": "sent",
-                        "message": "hello"
-                    },
-                    {
-                        "type": "received",
-                        "message": "Hello! I'm doing well, thank you. How about you? How's your day going?"
-                    },
-                    {
-                        "type": "sent",
-                        "message": "hello"
-                    },
-                    {
-                        "type": "received",
-                        "message": "Hello! I'm doing well, thank you. How about you? How's your day going?"
-                    }
                 ]
             },
             {

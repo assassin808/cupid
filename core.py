@@ -19,14 +19,19 @@ def getList():
             if not i['name'] == "Zhengyang YAN": #Change to User name
                 list.append({'name':i['name'], 'id':i['id']})
     return list
-@app.route("/users/load_history", methods=["GET"])
+
+
+@app.route("/users/load_history", methods=["POST"])
 def load_history():
+    data = request.get_json()
     try:
-        with open("chat_history.json", "r") as f:
+        with open("chat-history.json", "r") as f:
             history = json.load(f)
+            history = [d for d in history if d["sender_id"]==data["id"]][0]
             return {"conversations": history}
     except FileNotFoundError:
         return {"conversations": {}}
+
 @app.route("/users/chat", methods = ["POST"])
 def chat():
     if request.method == "POST":
@@ -68,6 +73,10 @@ def chat():
     f.write(json.dumps(chatHistory))
     f.close()
     return {"message": response}
+
+@app.route("/users/dating")
+def dating():
+    pass
 if __name__ == "__main__":
     app.run(debug = True,port = 8080)
 

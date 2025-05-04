@@ -33,6 +33,8 @@ class ChatAgent {
     }
 }
 
+const userId = 1;
+var History = new Object();
 // Initialize chat interface
 $(document).ready(function() {
     /*
@@ -77,20 +79,30 @@ $(document).ready(function() {
     // Function to load chat history
     async function loadChatHistory() {
         try {
-            const response = await fetch('/users/load_history');
+            const response = await fetch('/users/load_history',{
+                method:"POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body:JSON.stringify({
+                    "id":userId
+                })
+            });
             if (!response.ok) {
                 throw new Error('Failed to load chat history');
             }
             const data = await response.json();
             chatMessages = data.conversations || {};
-            
+            History = chatMessages
+            //console.log(chatMessages)
             // Update last messages for agents
             agents.forEach(agent => {
-                const agentHistory = chatMessages[agent.id];
-                if (agentHistory && agentHistory.length > 0) {
-                    const lastMessage = agentHistory[agentHistory.length - 1];
-                    agent.lastMessage = lastMessage.text.substring(0, 30) + (lastMessage.text.length > 30 ? '...' : '');
+                const agentHistory = chatMessages.chat.find(item=> item.receiver_id == agent.id) || {};
+                if (agentHistory.content && agentHistory.content.length > 0) {
+                    const lastMessage = agentHistory.content[agentHistory.content.length - 1].message;
+                    agent.lastMessage = lastMessage.substring(0, 30) + (lastMessage.length > 30 ? '...' : '');
                 }
+                else agent.lastMessage = ''
             });
         } catch (error) {
             console.error('Error loading chat history:', error);
@@ -98,6 +110,7 @@ $(document).ready(function() {
         }
     }
 
+    
     // Function to create chat list
     function createChatList() {
         const chatList = $('#chatList');
@@ -139,9 +152,10 @@ $(document).ready(function() {
 
         // Clear and load messages
         $('.chat-messages').empty();
-        if (chatMessages[agentId]) {
-            chatMessages[agentId].forEach(msg => {
-                addMessage(msg.text, msg.isUser, msg.timestamp, false, false);
+        const agentHistory = History.chat.find(item => item.receiver_id == Number(agentId))
+        if (agentHistory.content) {
+            agentHistory.content.forEach(msg => {
+                addMessage(msg.message, msg.type == "sent"?true:false, new Date(), false, false);
             });
         }
         // Scroll to bottom
@@ -173,15 +187,12 @@ $(document).ready(function() {
             }
             if(isStore)
             {
-                chatMessages[currentAgent.id].push({ 
-                    text: message, 
-                    isUser,
-                    timestamp: timestamp || new Date().toISOString()
+                var agentHistory = History.chat.find(item => item.receiver_id == Number(currentAgent.id))
+                agentHistory.content.push({ 
+                    message: message, 
+                    type: isUser?"sent":"received"
                 });
             }
-
-            // Save chat history after each message
-            saveChatHistory();
 
             // Update last message in chat list
             if (!isUser) {
@@ -192,6 +203,7 @@ $(document).ready(function() {
                     $(`.chat-list-item[data-agent-id="${currentAgent.id}"]`).addClass('active');
                 }
             }
+
         }
     }
 
