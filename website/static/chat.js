@@ -1,25 +1,25 @@
-import { Agent } from './utiles.py'
-
-
 class ChatAgent {
-    constructor(name) {
+    constructor(name, id) {
         this.name = name;
         this.messages = [];
+        this.id = Number(id);
     }
 
     async sendMessage(content) {
         try {
-            const response = await fetch('/api/chat', {
+            const response = await fetch('/users/chat', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
+                    "sender_id":1,
                     name: this.name,
+                    id: this.id,
                     content: content
                 })
             });
-
+            console.log(response)
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
@@ -35,12 +35,23 @@ class ChatAgent {
 
 // Initialize chat interface
 $(document).ready(function() {
+    /*
     const agents = [
         { id: 1, name: "Zhengyang YAN", lastMessage: "Hello! I'm Zhengyang YAN." },
-        { id: 2, name: "Alice", lastMessage: "Hi there!" },
+        { id: 2, name: "Hellen", lastMessage: "Hi there!" },
         { id: 3, name: "Bob", lastMessage: "Nice to meet you!" }
     ];
+*/
+    var agents =[]
+    $.ajax({
+        url:"/users/get-list",
+        method:"GET",
+        async: false
+    }).done(function(res){
+        agents = res
+    })
 
+    
     let currentAgent = null;
     let chatMessages = {};
 
@@ -66,7 +77,7 @@ $(document).ready(function() {
     // Function to load chat history
     async function loadChatHistory() {
         try {
-            const response = await fetch('/api/load_history');
+            const response = await fetch('/users/load_history');
             if (!response.ok) {
                 throw new Error('Failed to load chat history');
             }
@@ -130,20 +141,15 @@ $(document).ready(function() {
         $('.chat-messages').empty();
         if (chatMessages[agentId]) {
             chatMessages[agentId].forEach(msg => {
-                addMessage(msg.text, msg.isUser, msg.timestamp, false);
+                addMessage(msg.text, msg.isUser, msg.timestamp, false, false);
             });
-        } else {
-            chatMessages[agentId] = [];
-            const welcomeMessage = `Hello! I'm ${currentAgent.name}. How can I help you today?`;
-            addMessage(welcomeMessage, false, new Date().toISOString(), false);
         }
-
         // Scroll to bottom
         $('.chat-messages').scrollTop($('.chat-messages')[0].scrollHeight);
     }
 
     // Function to add a message to the chat
-    function addMessage(message, isUser = true, timestamp = null, isWelcome = false) {
+    function addMessage(message, isUser = true, timestamp = null, isWelcome = false, isStore = true) {
         const messageDiv = $('<div>').addClass('message');
         const messageContent = $('<div>').addClass('message-content');
         
@@ -165,11 +171,14 @@ $(document).ready(function() {
             if (!chatMessages[currentAgent.id]) {
                 chatMessages[currentAgent.id] = [];
             }
-            chatMessages[currentAgent.id].push({ 
-                text: message, 
-                isUser,
-                timestamp: timestamp || new Date().toISOString()
-            });
+            if(isStore)
+            {
+                chatMessages[currentAgent.id].push({ 
+                    text: message, 
+                    isUser,
+                    timestamp: timestamp || new Date().toISOString()
+                });
+            }
 
             // Save chat history after each message
             saveChatHistory();
@@ -201,7 +210,7 @@ $(document).ready(function() {
             $('.chat-messages').scrollTop($('.chat-messages')[0].scrollHeight);
 
             // Get agent response
-            const agent = new ChatAgent(currentAgent.name);
+            const agent = new ChatAgent(currentAgent.name, currentAgent.id);
             const response = await agent.sendMessage(message);
 
             // Remove typing indicator and add response

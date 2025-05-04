@@ -1,0 +1,49 @@
+[
+    {
+        "sender_id": 1,
+        "chat": [
+            {
+                "receiver_id": 2,
+                "content": [
+                    {
+                        "type": "sent",
+                        "message": "How are you?"
+                    },
+                    {
+                        "type": "received",
+                        "message": "I'm fine thank you."
+                    },
+                    {
+                        "type": "sent",
+                        "message": "hello"
+                    },
+                    {
+                        "type": "received",
+                        "message": "Hello! I'm doing well, thank you. How about you? How's your day going?"
+                    },
+                    {
+                        "type": "sent",
+                        "message": "hello"
+                    },
+                    {
+                        "type": "received",
+                        "message": "Hello! I'm doing well, thank you. How about you? How's your day going?"
+                    }
+                ]
+            },
+            {
+                "receiver_id": 3,
+                "content": [
+                    {
+                        "type": "sent",
+                        "message": "asd"
+                    },
+                    {
+                        "type": "received",
+                        "message": "I'm not sure what you're trying to convey. Could you please provide more details or clarify your message?"
+                    }
+                ]
+            }
+        ]
+    }
+]
