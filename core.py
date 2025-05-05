@@ -1,13 +1,18 @@
 from flask import Flask
-from flask import render_template,request
+from flask import render_template,request,redirect,url_for
 from utils import Agent
 from utils import Dating
+from utils import Matching
 import json
 app = Flask(__name__,template_folder="website",static_folder = "website/static")
-
-@app.route("/",methods = ["GET"])
-def hello():
+@app.route('/',methods = ["GET"])
+def Index():
     return render_template("index.html")
+
+
+@app.route("/users",methods = ["GET","POST"])
+def users():
+    return render_template("chat.html")
 
 @app.route("/users/get-list",methods = ["POST"])
 def getList():
@@ -18,7 +23,7 @@ def getList():
         list = []
         for i in data:
             if not (i['id'] == users['user_Id']): 
-                list.append({'name':i['name'], 'id':i['id']})
+                list.append({'name':i['name'], 'id':i['id'], 'avatarUrl':i['avatarUrl'], 'gender':i["gender"]})
     return list
 
 
@@ -155,6 +160,47 @@ def dating():
     f.close()
     
     return {"status":"ok"}
+@app.route("/matching",methods = ["POST"])
+def matching():
+    data = request.get_json()
+    f = open("report.json","r")
+    reports = json.load(f)
+    f.close()
+    #print(reports)
+    desiredReport = [d for d in reports if d['user_Id'] == data['user_Id']][0]
+    desiredReport["reports"] = []
+    for user in data['agents']:
+        female_agent = ''
+        male_agent = ''
+        if user['gender'] == "female":
+            male_agent = Agent("",data['user_name'],data['user_Id'])
+            female_agent = Agent("",user['name'],user['id'])
+        else:
+            female_agent = Agent("",data['user_name'],data['user_Id'])
+            male_agent = Agent("",user['name'],user['id'])
+        matching = Matching(female_agent, male_agent, user['rating'])
+        report = matching.rawMatching()
+        desiredReport['reports'].append({"reporter_id":user["id"],"report":report})
+    for i,d in enumerate(reports):
+        if d['user_Id'] == data['user_Id']:
+            reports[i] = desiredReport
+    f = open("report.json",'w')
+    f.write(json.dumps(reports))
+    f.close()
+    return {"status":"ok"}
+
+@app.route("/report", methods = ["GET"])
+def report():
+    return render_template("report.html")
+@app.route("/report/get-report",methods = ["POST"])
+def get_report():
+    data = request.get_json()
+    print(data)
+    f = open("report.json",'r')
+    reports = json.load(f)
+    item = [d for d in reports if d['user_Id'] == data['user_Id']][0]
+    desiredItem = [d for d in item['reports'] if d['reporter_id'] == data['agent']['id']][0]
+    return {'report':desiredItem['report']}
 if __name__ == "__main__":
     app.run(debug = True,port = 8080)
     

@@ -67,24 +67,6 @@ $(document).ready(function() {
     let currentAgent = null;
     let chatMessages = {};
 
-    // Function to save chat history
-    async function saveChatHistory() {
-        try {
-            const response = await fetch('/api/save_history', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ conversations: chatMessages })
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to save chat history');
-            }
-        } catch (error) {
-            console.error('Error saving chat history:', error);
-        }
-    }
 
     // Function to load chat history
     async function loadChatHistory() {
@@ -107,12 +89,14 @@ $(document).ready(function() {
             //console.log(chatMessages)
             // Update last messages for agents
             agents.forEach(agent => {
-                const agentHistory = chatMessages.chat.find(item=> item.receiver_id == agent.id) || {};
+                var agentHistory = chatMessages.chat.find(item=> item.receiver_id == agent.id) || {};
                 if (agentHistory.content && agentHistory.content.length > 0) {
                     const lastMessage = agentHistory.content[agentHistory.content.length - 1].message;
                     agent.lastMessage = lastMessage.substring(0, 30) + (lastMessage.length > 30 ? '...' : '');
                 }
-                else agent.lastMessage = ''
+                else {
+                    agent.lastMessage = '';
+                }
             });
         } catch (error) {
             console.error('Error loading chat history:', error);
@@ -130,7 +114,9 @@ $(document).ready(function() {
             const chatItem = $('<li>').addClass('chat-list-item')
                 .attr('data-agent-id', agent.id)
                 .html(`
-                    <div class="avatar">${agent.name.charAt(0)}</div>
+                    <div class="avatar">
+                        <img src="${agent.avatarUrl}" alt="${agent.name}" class="avatar-img">
+                    </div>
                     <div class="user-info">
                         <div class="user-name">${agent.name}</div>
                         <div class="last-message">${agent.lastMessage}</div>
@@ -147,8 +133,7 @@ $(document).ready(function() {
 
     // Function to switch between chats
     function switchChat(agentId) {
-        currentAgent = agents.find(a => a.id === agentId);
-        
+        currentAgent = agents.find(a => a.id === Number(agentId));
         // Update active state in chat list
         $('.chat-list-item').removeClass('active');
         $(`.chat-list-item[data-agent-id="${agentId}"]`).addClass('active');
@@ -264,7 +249,6 @@ $(document).ready(function() {
                 })
             });
             const result = await response.json();
-            console.log(result)
             if(result.status == 'ok'){
                 loadChatHistory().then(()=> switchChat(currentAgent.id))
                 typingIndicator.remove()
@@ -287,6 +271,11 @@ $(document).ready(function() {
     // Load chat history and initialize chat list
     loadChatHistory().then(() => {
         createChatList();
+        const params = new URLSearchParams(window.location.search);
+        if(params.get("agentId")){
+            agentId = params.get("agentId")
+            switchChat(agentId)
+        }
     });
 
     // Initially hide input container and show no-chat message
