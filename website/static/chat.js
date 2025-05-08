@@ -129,14 +129,43 @@ $(document).ready(function() {
 
             chatList.append(chatItem);
         });
+
+        // 根据当前状态和窗口大小设置显示
+        if (window.innerWidth < 768) {
+            if (currentAgent) {
+                $('.chat-list-container').removeClass('show');
+                $('.chat-area-container').addClass('show');
+                $('#backButton').show();
+                $('#inputContainer').show();
+                $('#noChatSelected').hide();
+            } else {
+                $('.chat-list-container').addClass('show');
+                $('.chat-area-container').removeClass('show');
+                $('#backButton').hide();
+                $('#inputContainer').hide();
+                $('#noChatSelected').show();
+            }
+        } else {
+            if (currentAgent) {
+                $('#inputContainer').show();
+                $('#noChatSelected').hide();
+            } else {
+                $('#inputContainer').hide();
+                $('#noChatSelected').show();
+            }
+        }
     }
 
     // Function to switch between chats
     function switchChat(agentId) {
         currentAgent = agents.find(a => a.id === Number(agentId));
-        // Update active state in chat list
+        console.log(currentAgent)
+        // 先移除所有active
         $('.chat-list-item').removeClass('active');
-        $(`.chat-list-item[data-agent-id="${agentId}"]`).addClass('active');
+        // 只在桌面端加active
+        if (window.innerWidth >= 768) {
+            $(`.chat-list-item[data-agent-id="${agentId}"]`).addClass('active');
+        }
 
         // Update chat title
         $('#chatTitle').html(`<i class="fas fa-user me-2"></i>${currentAgent.name}`);
@@ -145,10 +174,19 @@ $(document).ready(function() {
         $('#inputContainer').show();
         $('#noChatSelected').hide();
 
+        // Show back button and chat area on mobile
+        if (window.innerWidth < 768) {
+            $('#backButton').show();
+            $('.chat-list-container').removeClass('show');
+            $('.chat-area-container').addClass('show');
+            // 再次确保active被移除
+            $('.chat-list-item').removeClass('active');
+        }
+
         // Clear and load messages
         $('.chat-messages').empty();
-        const agentHistory = History.chat.find(item => item.receiver_id == Number(agentId))
-        if (agentHistory.content) {
+        const agentHistory = History.chat.find(item => item.receiver_id == Number(agentId));
+        if (agentHistory && agentHistory.content) {
             agentHistory.content.forEach(msg => {
                 addMessage(msg.message, msg.type == "sent"?true:false, new Date(), false, false);
             });
@@ -156,6 +194,64 @@ $(document).ready(function() {
         // Scroll to bottom
         $('.chat-messages').scrollTop($('.chat-messages')[0].scrollHeight);
     }
+
+    // Handle back button click
+    $('#backButton').click(function() {
+        $('.chat-area-container').removeClass('show');
+        $('.chat-list-container').addClass('show');
+        $('#backButton').hide();
+        $('#chatTitle').html(`<i class="fas fa-robot me-2"></i>Select a chat`);
+        $('#inputContainer').hide();
+        $('#noChatSelected').show();
+        // 强制移除所有active
+        $('.chat-list-item').removeClass('active');
+    });
+
+    // Handle window resize
+    $(window).resize(function() {
+        // 先全部移除active
+        $('.chat-list-item').removeClass('active');
+        if (window.innerWidth >= 768) {
+            // 在桌面端，移除移动端的特殊样式
+            $('.chat-list-container').removeClass('show');
+            $('.chat-area-container').removeClass('show');
+            $('#backButton').hide();
+            
+            // 如果有选中的聊天，保持显示状态
+            if (currentAgent) {
+                $('#inputContainer').show();
+                $('#noChatSelected').hide();
+                $('#chatTitle').html(`<i class="fas fa-user me-2"></i>${currentAgent.name}`);
+                // 恢复active
+                $(`.chat-list-item[data-agent-id="${currentAgent.id}"]`).addClass('active');
+            } else {
+                $('#inputContainer').hide();
+                $('#noChatSelected').show();
+                $('#chatTitle').html(`<i class="fas fa-robot me-2"></i>Select a chat`);
+            }
+        } else {
+            // 在移动端时，如果当前有选中的聊天，显示聊天界面
+            if (currentAgent) {
+                $('.chat-list-container').removeClass('show');
+                $('.chat-area-container').addClass('show');
+                $('#backButton').show();
+                $('#inputContainer').show();
+                $('#noChatSelected').hide();
+                $('#chatTitle').html(`<i class="fas fa-user me-2"></i>${currentAgent.name}`);
+                // 再次确保active被移除
+                $('.chat-list-item').removeClass('active');
+            } else {
+                $('.chat-list-container').addClass('show');
+                $('.chat-area-container').removeClass('show');
+                $('#backButton').hide();
+                $('#inputContainer').hide();
+                $('#noChatSelected').show();
+                $('#chatTitle').html(`<i class="fas fa-robot me-2"></i>Select a chat`);
+                // 再次确保active被移除
+                $('.chat-list-item').removeClass('active');
+            }
+        }
+    });
 
     // Function to add a message to the chat
     function addMessage(message, isUser = true, timestamp = null, isWelcome = false, isStore = true) {
@@ -166,6 +262,10 @@ $(document).ready(function() {
             messageDiv.addClass('user-message');
         } else {
             messageDiv.addClass('bot-message');
+            // 添加机器人头像
+            const botAvatar = $('<div>').addClass('message-avatar')
+                .html(`<img src="${currentAgent.avatarUrl}" alt="Bot">`);
+            messageDiv.append(botAvatar);
         }
         
         messageContent.text(message);
@@ -198,7 +298,6 @@ $(document).ready(function() {
                     $(`.chat-list-item[data-agent-id="${currentAgent.id}"]`).addClass('active');
                 }
             }
-
         }
     }
 
@@ -212,7 +311,10 @@ $(document).ready(function() {
 
             // Create typing indicator
             const typingIndicator = $('<div>').addClass('message bot-message typing-indicator');
-            typingIndicator.html('<div class="message-content"><span></span><span></span><span></span></div>');
+            const botAvatar = $('<div>').addClass('message-avatar')
+                .html(`<img src="${currentAgent.avatarUrl}" alt="Bot">`);
+            typingIndicator.append(botAvatar);
+            typingIndicator.append('<div class="message-content"><span></span><span></span><span></span></div>');
             $('.chat-messages').append(typingIndicator);
             $('.chat-messages').scrollTop($('.chat-messages')[0].scrollHeight);
 
@@ -273,8 +375,8 @@ $(document).ready(function() {
         createChatList();
         const params = new URLSearchParams(window.location.search);
         if(params.get("agentId")){
-            agentId = params.get("agentId")
-            switchChat(agentId)
+            const agentId = params.get("agentId");
+            switchChat(agentId);
         }
     });
 

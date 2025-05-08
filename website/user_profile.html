@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="static/user_profile.css">
+</head>
+<body>
+    <nav class="login-banner navbar navbar-light bg-white px-4 py-2 shadow-sm">
+        <span class="navbar-brand mb-0 h1 brand-title" style="font-size:1.3rem;letter-spacing:1px;">cupid.ai</span>
+    </nav>
+    <div class="container-fluid bg-light min-vh-100 d-flex align-items-center justify-content-center" style="padding-top:0;">
+        <div class="profile-box shadow-lg p-4 bg-white rounded-4">
+            <div class="text-center mb-4">
+                <h2 class="brand-title mb-2">User Profile</h2>
+                <div class="progress mb-3" style="height: 8px;">
+                    <div id="progressBar" class="progress-bar bg-pink" role="progressbar" style="width: 33%; background: linear-gradient(90deg, #ffb6c1, #ffc0cb);" aria-valuenow="33" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <div class="text-muted">Please complete your information</div>
+            </div>
+            <form id="profileForm">
+                <div id="step1" class="step-fade active">
+                    <div class="mb-3">
+                        <label for="nickname" class="form-label">Nickname</label>
+                        <input type="text" class="form-control" id="nickname" placeholder="Enter your nickname">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Gender</label>
+                        <div class="d-flex gap-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="gender" id="genderMale" value="male">
+                                <label class="form-check-label" for="genderMale">Male</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="gender" id="genderFemale" value="female">
+                                <label class="form-check-label" for="genderFemale">Female</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="gender" id="genderOther" value="other">
+                                <label class="form-check-label" for="genderOther">Other</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="hobbies" class="form-label">Hobbies</label>
+                        <input type="text" class="form-control" id="hobbies" placeholder="e.g. Reading, Music, Sports">
+                    </div>
+                    <div class="mb-3">
+                        <label for="birthday" class="form-label">Birthday</label>
+                        <input type="date" class="form-control" id="birthday">
+                    </div>
+                    <div class="mb-3">
+                        <label for="avatar" class="form-label">Avatar (optional)</label>
+                        <input type="file" class="form-control" id="avatar" accept="image/*">
+                    </div>
+                </div>
+                <div id="step2" class="step-fade">
+                    <div class="mb-3">
+                        <label for="loveView" class="form-label">What is your view on love?</label>
+                        <select class="form-select" id="loveView">
+                            <option value="" selected disabled>Select your view</option>
+                            <option value="romantic">Romantic</option>
+                            <option value="realistic">Realistic</option>
+                            <option value="adventurous">Adventurous</option>
+                            <option value="cautious">Cautious</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="qualities" class="form-label">What qualities do you value most in a partner?</label>
+                        <input type="text" class="form-control" id="qualities" placeholder="e.g. Honesty, Humor, Ambition">
+                    </div>
+                    <div class="mb-3">
+                        <label for="idealDate" class="form-label">Describe your ideal date</label>
+                        <textarea class="form-control" id="idealDate" rows="2" placeholder="e.g. A walk on the beach, candlelight dinner..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="relationshipType" class="form-label">Are you looking for a serious relationship or just fun?</label>
+                        <select class="form-select" id="relationshipType">
+                            <option value="" selected disabled>Select one</option>
+                            <option value="serious">Serious relationship</option>
+                            <option value="fun">Just fun</option>
+                            <option value="notSure">Not sure</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="dealbreakers" class="form-label">What are your dealbreakers?</label>
+                        <input type="text" class="form-control" id="dealbreakers" placeholder="e.g. Smoking, Dishonesty, ...">
+                    </div>
+                </div>
+                <div id="step3" class="step-fade">
+                    <div class="mb-3">
+                        <label for="favDateActivity" class="form-label">What is your favorite date activity?</label>
+                        <input type="text" class="form-control" id="favDateActivity" placeholder="e.g. Movie, Hiking, Cooking together">
+                    </div>
+                    <div class="mb-3">
+                        <label for="longDistance" class="form-label">How do you feel about long-distance relationships?</label>
+                        <select class="form-select" id="longDistance">
+                            <option value="" selected disabled>Select one</option>
+                            <option value="ok">I'm open to it</option>
+                            <option value="notOk">I prefer not</option>
+                            <option value="depends">It depends</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="pets" class="form-label">Do you mind if your partner has pets?</label>
+                        <select class="form-select" id="pets">
+                            <option value="" selected disabled>Select one</option>
+                            <option value="love">I love pets</option>
+                            <option value="ok">I don't mind</option>
+                            <option value="notOk">I prefer not</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="datingFreq" class="form-label">What is your ideal dating frequency?</label>
+                        <select class="form-select" id="datingFreq">
+                            <option value="" selected disabled>Select one</option>
+                            <option value="daily">Every day</option>
+                            <option value="weekly">A few times a week</option>
+                            <option value="monthly">A few times a month</option>
+                            <option value="rarely">Rarely</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="buttonRow" class="d-flex gap-2 mb-2 mt-4"></div>
+            </form>
+        </div>
+    </div>
+    <footer class="login-footer">
+        <div class="footer-links">
+            <a href="#" target="_blank">About</a>
+            <span class="footer-sep">|</span>
+            <a href="#" target="_blank">Terms of Service</a>
+            <span class="footer-sep">|</span>
+            <a href="#" target="_blank">Privacy Policy</a>
+        </div>
+        <div class="footer-copy">
+            &copy; 2024 Cupid. All rights reserved.
+        </div>
+    </footer>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        function renderButtons(step) {
+            const buttonRow = document.getElementById('buttonRow');
+            buttonRow.innerHTML = '';
+            if (step === 1) {
+                buttonRow.innerHTML = '<button type="button" id="nextStepBtn1" class="btn btn-primary w-100">Next Step</button>';
+            } else if (step === 2) {
+                buttonRow.innerHTML = '<button type="button" id="prevStepBtn2" class="btn btn-outline-secondary w-50">Previous Step</button>' +
+                                      '<button type="button" id="nextStepBtn2" class="btn btn-primary w-50">Next Step</button>';
+            } else if (step === 3) {
+                buttonRow.innerHTML = '<button type="button" id="prevStepBtn3" class="btn btn-outline-secondary w-50">Previous Step</button>' +
+                                      '<button type="submit" id="submitBtn" class="btn btn-primary w-50">Submit</button>';
+            }
+            // 重新绑定事件
+            if (step === 1) {
+                document.getElementById('nextStepBtn1').onclick = function(e) { e.preventDefault(); showStep(2); };
+            } else if (step === 2) {
+                document.getElementById('prevStepBtn2').onclick = function(e) { e.preventDefault(); showStep(1); };
+                document.getElementById('nextStepBtn2').onclick = function(e) { e.preventDefault(); showStep(3); };
+            } else if (step === 3) {
+                document.getElementById('prevStepBtn3').onclick = function(e) { e.preventDefault(); showStep(2); };
+            }
+        }
+        function showStep(step) {
+            ['step1','step2','step3'].forEach(function(id, idx){
+                var el = document.getElementById(id);
+                if (step === idx+1) {
+                    el.classList.add('active');
+                } else {
+                    el.classList.remove('active');
+                }
+            });
+            if(step === 1) setProgress(33);
+            if(step === 2) setProgress(66);
+            if(step === 3) setProgress(100);
+            renderButtons(step);
+        }
+        function setProgress(val) {
+            var bar = document.getElementById('progressBar');
+            bar.style.width = val + '%';
+            bar.setAttribute('aria-valuenow', val);
+        }
+        // 初始化
+        showStep(1);
+    });
+    </script>
+</body>
+</html> 

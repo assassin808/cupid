@@ -201,6 +201,15 @@ def get_report():
     item = [d for d in reports if d['user_Id'] == data['user_Id']][0]
     desiredItem = [d for d in item['reports'] if d['reporter_id'] == data['agent']['id']][0]
     return {'report':desiredItem['report']}
+
+@app.route('/login_register', methods=['GET'])
+def login_register():
+    return render_template('login_register.html')
+
+@app.route('/user_profile', methods=['GET'])
+def user_profile():
+    return render_template('user_profile.html')
+
 if __name__ == "__main__":
     app.run(debug = True,port = 8080)
     
