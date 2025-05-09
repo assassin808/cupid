@@ -128,11 +128,16 @@ body, html {
 }
 
 .login-banner .brand-title {
-    color: #ff69b4;
+    color: #222;
     font-weight: 700;
     font-size: 1.3rem;
     letter-spacing: 1px;
     margin-left: 0.5rem;
+    text-decoration: none;
+}
+
+.login-banner .brand-title:hover {
+    color: #222;
 }
 
 .login-quote-box {
