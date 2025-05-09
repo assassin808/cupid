@@ -7,7 +7,7 @@ import json
 app = Flask(__name__,template_folder="website",static_folder = "website/static")
 @app.route('/',methods = ["GET"])
 def Index():
-    return render_template("index.html")
+    return render_template("home.html")
 
 
 @app.route("/users",methods = ["GET","POST"])
@@ -209,6 +209,15 @@ def login_register():
 @app.route('/user_profile', methods=['GET'])
 def user_profile():
     return render_template('user_profile.html')
+
+@app.route('/user_settings', methods=['GET'])
+def user_settings():
+    return render_template('user_settings.html')
+
+@app.route('/dicovery', methods=['GET'])
+def dicovery():
+    return render_template('index.html')
+
 
 if __name__ == "__main__":
     app.run(debug = True,port = 8080)

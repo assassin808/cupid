@@ -176,6 +176,7 @@ $(document).ready(function() {
 
         // Show back button and chat area on mobile
         if (window.innerWidth < 768) {
+            $('.back-home-fixed').hide();
             $('#backButton').show();
             $('.chat-list-container').removeClass('show');
             $('.chat-area-container').addClass('show');
@@ -205,6 +206,10 @@ $(document).ready(function() {
         $('#noChatSelected').show();
         // 强制移除所有active
         $('.chat-list-item').removeClass('active');
+        // 显示返回主页按钮
+        if (window.innerWidth < 768) {
+            $('.back-home-fixed').show();
+        }
     });
 
     // Handle window resize
@@ -232,6 +237,7 @@ $(document).ready(function() {
         } else {
             // 在移动端时，如果当前有选中的聊天，显示聊天界面
             if (currentAgent) {
+                
                 $('.chat-list-container').removeClass('show');
                 $('.chat-area-container').addClass('show');
                 $('#backButton').show();

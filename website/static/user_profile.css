@@ -24,6 +24,11 @@ body, html {
     font-size: 1.3rem;
     letter-spacing: 1px;
     margin-left: 0.5rem;
+    text-decoration: none;
+}
+
+.login-banner .brand-title:hover {
+    color: #222;
 }
 
 .container-fluid.bg-light {

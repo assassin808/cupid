@@ -368,6 +368,13 @@ body {
     .chat-header h5 {
         margin: 0 auto;
     }
+
+    /* 新增：让聊天列表头部标题居中 */
+    .chat-list-header h5 {
+        text-align: center;
+        width: 100%;
+        margin: 0 auto;
+    }
 }
 
 @media (max-width: 480px) {
@@ -546,4 +553,41 @@ body {
 /* Status indicator */
 .badge.bg-success {
     background: linear-gradient(45deg, #f06292, #ba68c8) !important;
+}
+
+.back-home-fixed {
+    position: fixed;
+    top: 24px;
+    left: 32px;
+    z-index: 3000;
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 0.5rem 1.2rem;
+    box-shadow: 0 2px 8px rgba(255,182,193,0.08);
+    background: linear-gradient(45deg, #ffb6c1, #ffc0cb);
+    color: #fff;
+    border: none;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+}
+.back-home-fixed i {
+    color: #fff;
+    font-size: 1.1rem;
+    margin-right: 0.5rem;
+    transition: color 0.2s;
+}
+.back-home-fixed:hover {
+    background: linear-gradient(45deg, #ff69b4, #ffb6c1);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(255,182,193,0.18);
+}
+@media (max-width: 600px) {
+    .back-home-fixed {
+        top: 12px;
+        left: 8px;
+        padding: 0.4rem 0.8rem;
+        font-size: 0.95rem;
+    }
 }
