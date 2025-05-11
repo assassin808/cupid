@@ -1,10 +1,21 @@
 from flask import Flask
-from flask import render_template,request,redirect,url_for
+from flask import render_template,request,redirect,url_for,session,jsonify,abort
 from utils import Agent
 from utils import Dating
 from utils import Matching
+from bson.objectid import ObjectId
+import secrets
 import json
+import os
+from Database import dbClient
 app = Flask(__name__,template_folder="website",static_folder = "website/static")
+app.config['UPLOAD_FOLDER'] = 'website/static/'
+secret_key =secrets.token_hex(32)
+app.secret_key = secret_key
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_NAME'] = 'session'
+app.permanent_session_lifetime = 3600  # session 有效期为 1 小时
 @app.route('/',methods = ["GET"])
 def Index():
     return render_template("home.html")
@@ -212,13 +223,72 @@ def user_profile():
 
 @app.route('/user_settings', methods=['GET'])
 def user_settings():
-    return render_template('user_settings.html')
+    return render_template('user_settings.html') 
 
 @app.route('/dicovery', methods=['GET'])
 def dicovery():
     return render_template('index.html')
+@app.route("/login",methods = ["POST"])
+def login():
+    data = request.get_json()
+    db = dbClient()
+    user = db.getCollection("Users").find_one({"email":data["email"]})
+    if user:
+        if user["password"] == data["password"]:
+            user['_id'] = str(user['_id'])
+            session['logged_user'] = user
+            print(session['logged_user'])
+            return {"status":"ok"}
+        else:
+            return {"status":"fail","message":"Password is incorrect"}
+    return {"status":"fail","message":"Email is incorrect"}
+@app.route("/register",methods = ["POST"])
+def register():
+    data = request.get_json()
+    db = dbClient()
+    try:
+        #check if the email is already in the database
+        if db.getCollection("Users").find_one({"email":data["email"]}):
+            return {"status":"fail","message":"Email already exists"}
+        db.getCollection("Users").insert_one({
+            "email":data["email"],
+            "password":data["password"]
+        })
+        login()
+        return {"status":"ok"}
+    except:
+        return {"status":"fail","message":"System Error"}
 
+@app.route('/logout', methods=['GET'])
+def logout():
+    session.clear()
+    return redirect(url_for('login_register'))
 
+@app.route('/get_user_info', methods=['GET'])
+def get_user_info():
+    try:
+        return session['logged_user']
+    except:
+        abort(401,description="Unauthorized")
+        #return {"status":"fail","message":"User not logged in"}
+@app.route('/update_user_info', methods=['POST'])
+def update_user_info():
+    if 'logged_user' not in session:
+        abort(401,description="Unauthorized")
+        #return {"status":"fail","message":"User not logged in"}
+    form_data = request.form.to_dict()
+    avatar = request.files.get('avatar')
+    if avatar:
+        avatar_path = os.path.join(app.config['UPLOAD_FOLDER'],'avatars', avatar.filename)
+        avatar.save(avatar_path)
+        form_data['avatar'] = os.path.join('static/avatars', avatar.filename)
+    db = dbClient()
+    try:
+        db.getCollection("Users").update_one({"_id":ObjectId(session['logged_user']['_id'])}, 
+                                             {"$set":{"information": form_data}})
+        return {"status":"ok"}
+    except:
+        return {"status":"fail","message":"System Error"}
 if __name__ == "__main__":
     app.run(debug = True,port = 8080)
     

@@ -34,8 +34,8 @@
                 </ul>
             </nav>
             <div class="sidebar-avatar mt-auto pt-4">
-                <img src="https://randomuser.me/api/portraits/women/1.jpg" alt="Avatar" class="rounded-circle" style="width:56px;height:56px;object-fit:cover;border:2px solid #eee;">
-                <a class="nav-link text-danger mt-3 d-block text-center" href="#" style="font-weight:500;"><i class="fas fa-sign-out-alt me-2"></i>Logout</a>
+                <img src="" id = "avatar" alt="Avatar" class="rounded-circle" style="width:56px;height:56px;object-fit:cover;border:2px solid #eee;">
+                <a class="nav-link text-danger mt-3 d-block text-center" href="#" id = "logoutBtn" style="font-weight:500;"><i class="fas fa-sign-out-alt me-2"></i>Logout</a>
             </div>
         </aside>
         <!-- Main Content -->
@@ -51,7 +51,7 @@
                 <form id="settingsForm">
                     <div class="mb-4 text-center">
                         <div class="avatar-container position-relative d-inline-block" onclick="document.getElementById('avatar').click();">
-                            <img id="avatarPreview" src="https://randomuser.me/api/portraits/women/1.jpg" alt="Avatar" class="rounded-circle">
+                            <img id="avatarPreview" src="" alt="Avatar" class="rounded-circle">
                             <div class="avatar-overlay">
                                 <i class="fas fa-camera"></i>
                             </div>
@@ -151,10 +151,56 @@
     };
 
     // 进入具体聊天时
-    document.querySelector('.back-home-fixed').style.display = 'none';
+    //document.querySelector('.back-home-fixed').style.display = 'none';
 
     // 返回聊天列表时
-    document.querySelector('.back-home-fixed').style.display = '';
+    //document.querySelector('.back-home-fixed').style.display = '';
+
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('/get_user_info', {
+            method: 'GET',
+            credentials: 'include'
+        })
+        .then(async res => {
+            if (res.status === 401) {
+                window.location.href = '/login_register';
+                return;
+            }
+            const data = await res.json();
+            if (data.status && data.status === 'not_logged_in') {
+                window.location.href = '/login_register';
+                return;
+            }
+            console.log(data)
+            // 自动填充表单
+            if (data.information) {
+                document.getElementById('nickname').value = data.information.nickname || '';
+                document.getElementById('birthday').value = data.information.birthday || '';
+                document.getElementById('hobbies').value = data.information.hobbies || '';
+                document.getElementById('avatar').src = data.information.avatar;
+                // 性别单选框
+                if (data.information.gender) {
+                    const gender = data.information.gender;
+                    if (gender === 'male') document.getElementById('genderMale').checked = true;
+                    else if (gender === 'female') document.getElementById('genderFemale').checked = true;
+                    else if (gender === 'other') document.getElementById('genderOther').checked = true;
+                }
+                // 头像
+                if (data.information.avatar) {
+                    document.getElementById('avatarPreview').src = data.information.avatar;
+                }
+            }
+        })
+        .catch(() => {
+            window.location.href = '/login_register';
+        });
+    });
+
+    // 登出按钮事件
+    document.getElementById('logoutBtn').onclick = function(e) {
+        e.preventDefault();
+        window.location.href = '/logout';
+    };
     </script>
 </body>
 </html> 

@@ -42,8 +42,8 @@
         </div>
         <div class="sidebar-footer mt-auto px-3 pb-3">
             <a href="/user_settings" class="d-flex align-items-center user-center-link">
-                <img src="https://randomuser.me/api/portraits/men/31.jpg" class="avatar-lg me-2">
-                <span class="fw-semibold">BrightAlbatross5487</span>
+                <img src="https://randomuser.me/api/portraits/women/1.jpg" class="avatar-lg me-2" id = "avatar">
+                <span class="fw-semibold" id = "nickname">BrightAlbatross5487</span>
             </a>
         </div>
     </aside>
@@ -275,5 +275,34 @@
         </div>
     </main>
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/get_user_info', {
+        method: 'GET',
+        credentials: 'include' // 保证带上cookie/session
+    })
+    .then(async res => {
+        if (res.status === 401) {
+            // 未登录，跳转到登录页
+            window.location.href = '/login_register';
+            return;
+        }
+        // 也可能后端返回200但内容表明未登录
+        const data = await res.json();
+        if (data.status && data.status === 'not_logged_in') {
+            window.location.href = '/login_register';
+            return;
+        }
+        // 你可以在这里用data渲染页面
+        document.querySelector('#nickname').textContent = data.information.nickname;
+        document.querySelector('.nickname').textContent = data.information.nickname;
+        document.querySelector('#avatar').src = data.information.avatar;
+    })
+    .catch(() => {
+        // 网络错误也跳转
+        window.location.href = '/login_register';
+    });
+});
+</script>
 </body>
 </html> 
