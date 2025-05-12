@@ -1,14 +1,14 @@
 // 用户信息列表
-const userId = 1;
-const userGender = 'male'
-const userName = "Zhengyang YAN"
+var userId = 1;
+var userGender = 'male'
+var userName = "Zhengyang YAN"
 const emojiList = ['😫', '😣', '😘', '🥰', '😍'];
 // 处理头像点击事件
 function handleAvatarClick(agentId) {
   console.log('点击了用户ID:', agentId);
   // 这里可以添加更多点击后的处理逻辑
   user = users.find((a) => a['id'] == agentId)
-  window.open(`/report?agent=${JSON.stringify(user)}&userId=${userId}`)
+  window.open(`/report?agent=${JSON.stringify(user)}&userId=${JSON.stringify(userId)}`)
 }
 
 // 渲染头像矩阵
@@ -16,7 +16,7 @@ function renderAvatars(showRatings = false) {
   const container = document.getElementById('avatar-matrix');
   container.innerHTML = users.map((user, idx) => `
     <div class="avatar-box">
-      <img class="avatar-img" src="${user.avatarUrl}" alt="${user.name}" onclick="handleAvatarClick(${user.id})" style="cursor: pointer;">
+      <img class="avatar-img" src="${user.avatarUrl}" alt="${user.name}" onclick="handleAvatarClick('${user.id}')" style="cursor: pointer;">
       <span class="avatar-emoji" id="emoji-${idx+1}" style="opacity:${user.showEmoji ? 1 : 0}">${user.emoji}</span>
       <div class="user-name">${user.name}</div>
       <div class="rating-text" style="opacity:${showRatings ? 1 : 0}">Match Rating:${user.rating}</div>
@@ -94,26 +94,59 @@ function animateSort(callback) {
 }
 
 // 初始化
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  // 登录状态检查
+  try {
+    const res = await fetch('/get_user_info', {
+      method: 'GET',
+      credentials: 'include'
+    });
+    if (res.status === 401) {
+      window.location.href = '/login_register';
+      return;
+    }
+    const data = await res.json();
+    if (data.status && data.status === 'not_logged_in') {
+      window.location.href = '/login_register';
+      return;
+    }
+    // 已登录，继续后续逻辑
+    userId = data._id
+    userGender = data.information.gender
+    userName = data.information.nickname
+    try{
+      $.ajax({
+      url:"/users/get-list",
+      method:"POST",
+      headers: { 
+          'Accept': 'application/json',
+          'Content-Type': 'application/json' 
+      },
+      async: false,
+      dataType:"json",
+      data:JSON.stringify({
+          user_Id:userId
+      })
+      }).done(function(res){
+        users = res
+        console.log(res)
+      })
+      renderAvatars();
+      users.forEach((user)=>{
+        setEmojiVisible(user.id,false)
+      })
+    }
+    catch(e){
+      alert("Network Error!")
+      return;
+    }
+    
+
+  } catch (e) {
+    window.location.href = '/login_register';
+    return;
+  }
+
   
-  $.ajax({
-    url:"/users/get-list",
-    method:"POST",
-    headers: { 
-        'Accept': 'application/json',
-        'Content-Type': 'application/json' 
-    },
-    async: false,
-    dataType:"json",
-    data:JSON.stringify({
-        user_Id:userId
-    })
-    }).done(function(res){
-      users = res
-    })
-  renderAvatars();
-  users.forEach((user)=>{
-    setEmojiVisible(user.id,false)
-  })
 
 }); 

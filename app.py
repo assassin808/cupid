@@ -27,16 +27,18 @@ def users():
 
 @app.route("/users/get-list",methods = ["POST"])
 def getList():
-    with open("interview-list.json", "r") as f:
-        data = json.load(f)
-        #print(data)
-        users = request.get_json()
-        list = []
-        for i in data:
-            if not (i['id'] == users['user_Id']): 
-                list.append({'name':i['name'], 'id':i['id'], 'avatarUrl':i['avatarUrl'], 'gender':i["gender"]})
+    data = request.get_json()
+    db = dbClient()
+    users = db.getCollection("Users").find({},{"password":0})
+    list = []
+    for i in users:
+        try:
+            
+            if not (str(i['_id']) == data['user_Id'] and i['information']['gender'] == data['user_gender']):
+                list.append({'name':i['information']['nickname'], 'id':str(i['_id']), 'avatarUrl':i['information']['avatar'], 'gender':i["information"]["gender"]})
+        except:
+            pass
     return list
-
 
 @app.route("/users/load_history", methods=["POST"])
 def load_history():
@@ -174,12 +176,8 @@ def dating():
 @app.route("/matching",methods = ["POST"])
 def matching():
     data = request.get_json()
-    f = open("report.json","r")
-    reports = json.load(f)
-    f.close()
-    #print(reports)
-    desiredReport = [d for d in reports if d['user_Id'] == data['user_Id']][0]
-    desiredReport["reports"] = []
+
+    desiredReport = {"user_Id":data['user_Id'],"reports":[]}
     for user in data['agents']:
         female_agent = ''
         male_agent = ''
@@ -192,12 +190,10 @@ def matching():
         matching = Matching(female_agent, male_agent, user['rating'])
         report = matching.rawMatching()
         desiredReport['reports'].append({"reporter_id":user["id"],"report":report})
-    for i,d in enumerate(reports):
-        if d['user_Id'] == data['user_Id']:
-            reports[i] = desiredReport
-    f = open("report.json",'w')
-    f.write(json.dumps(reports))
-    f.close()
+
+
+    db = dbClient()
+    db.getCollection("report").update_one({"user_Id":data['user_Id']}, {"$set":{"reports":desiredReport['reports']}},upsert=True)
     return {"status":"ok"}
 
 @app.route("/report", methods = ["GET"])
@@ -207,11 +203,11 @@ def report():
 def get_report():
     data = request.get_json()
     print(data)
-    f = open("report.json",'r')
-    reports = json.load(f)
-    item = [d for d in reports if d['user_Id'] == data['user_Id']][0]
-    desiredItem = [d for d in item['reports'] if d['reporter_id'] == data['agent']['id']][0]
-    return {'report':desiredItem['report']}
+    db = dbClient()
+    reports = db.getCollection("report").find_one({"user_Id":data['user_Id']})
+    print(reports)
+    item = [d for d in reports['reports'] if d['reporter_id'] == data['agent']['id']][0]
+    return {'report':item['report']}
 
 @app.route('/login_register', methods=['GET'])
 def login_register():

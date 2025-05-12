@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Get user ID from URL parameters
   const params = new URLSearchParams(window.location.search);
   const agent = JSON.parse(params.get('agent'));
-  const userId = Number(params.get("userId"))
+  const userId = JSON.parse(params.get("userId"))
   console.log(userId)
   console.log(agent)
   document.getElementById('user-avatar').src = agent.avatarUrl;
