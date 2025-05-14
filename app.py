@@ -243,6 +243,12 @@ def register():
     data = request.get_json()
     db = dbClient()
     try:
+        #check if the invitation code is valid
+        invitation_code = db.getCollection("invitation-code").find_one({"code":data["invite"]})
+        if not invitation_code:
+            return {"status":"fail","message":"Invitation code is invalid"}
+        if invitation_code["is_used"]:
+            return {"status":"fail","message":"Invitation code is already used"}
         #check if the email is already in the database
         if db.getCollection("Users").find_one({"email":data["email"]}):
             return {"status":"fail","message":"Email already exists"}
@@ -250,6 +256,7 @@ def register():
             "email":data["email"],
             "password":data["password"]
         })
+        db.getCollection("invitation-code").update_one({"code":data["invite"]}, {"$set":{"is_used":True}})
         login()
         return {"status":"ok"}
     except:
