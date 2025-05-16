@@ -1,0 +1,130 @@
+{
+  "1": {
+    "question": "To get us started, where are you from? Where did you grow up and what was the place like?",
+    "answer": "I'm from Austin, Texas. I grew up in a lively suburb with lots of green spaces and a tight-knit community. It was vibrant, with music festivals and food trucks everywhere, which gave it a creative, laid-back vibe."
+  },
+  "2": {
+    "question": "Thinking back, what kind of student were you in school?",
+    "answer": "I was a curious student, always asking questions. I did well in subjects I liked but could be a bit distracted in others. I was involved in clubs like robotics and debate, which kept me engaged."
+  },
+  "3": {
+    "question": "Did you have a teacher or teachers that were influential? If so, why? What were they like?",
+    "answer": "My high school computer science teacher, Ms. Carter, was a huge influence. She was patient, passionate, and made coding feel like solving puzzles. She encouraged me to think creatively and not fear failure."
+  },
+  "4": {
+    "question": "What was your favorite subject in school, and why?",
+    "answer": "Computer science. I loved how it combined logic and creativity to build something functional, like apps or games, from scratch."
+  },
+  "5": {
+    "question": "What was your least favorite subject in school, and why?",
+    "answer": "History. I struggled to memorize dates and events; it felt dry compared to hands-on subjects like coding or science."
+  },
+  "6": {
+    "question": "Still thinking back, who were your heroes when you were young and why?",
+    "answer": "Elon Musk and Ada Lovelace. Musk because he was pushing boundaries with tech and space, which was inspiring. Lovelace for being a pioneer in coding—her story showed me anyone could break into tech."
+  },
+  "7": {
+    "question": "When you were little, what did you want to be when you grew up? And why?",
+    "answer": "I wanted to be an astronaut because I was obsessed with space and thought exploring the universe would be the coolest adventure."
+  },
+  "8": {
+    "question": "What were your dreams and plans when you graduated from high school? What made you have those dreams or plans?",
+    "answer": "I planned to study computer science and work in AI or software development. My passion for coding and seeing how tech like AI was changing the world drove those goals."
+  },
+  "9": {
+    "question": "If you had complete freedom, what would your dream job be, and why?",
+    "answer": "I’d love to be an AI researcher at a place like xAI, creating systems that solve real-world problems like climate change or healthcare. It’s exciting to think about tech that can make a big impact."
+  },
+  "10": {
+    "question": "How have your dreams and goals changed throughout your life?",
+    "answer": "As a kid, I wanted to explore space, but in high school, I shifted toward tech because I saw how coding could solve problems here on Earth. Now, I’m focused on AI and its potential to shape the future."
+  },
+  "11": {
+    "question": "Shifting gears to your childhood, how would you describe the personalities of people in the family you grew up in? For example, what were your parents and/or siblings like?",
+    "answer": "My mom is nurturing and organized, always planning family outings. My dad is analytical and loves debates, which sparked my interest in problem-solving. My older sister is outgoing and artistic, always pushing me to try new things."
+  },
+  "12": {
+    "question": "How are you similar or different from your parents and/or siblings?",
+    "answer": "I’m like my dad in my analytical thinking and love for tech, but I’m more introverted than my sister. Unlike my mom, I’m less organized but share her curiosity."
+  },
+  "13": {
+    "question": "How do you think your similarities and/or differences influenced your relationship with them?",
+    "answer": "My dad and I bond over tech discussions, which strengthened our relationship. My sister’s outgoing nature pushed me out of my comfort zone, but we sometimes clashed because I’m quieter. My mom’s curiosity keeps us close, though I frustrate her with my messy desk."
+  },
+  "14": {
+    "question": "What was the best part of your childhood?",
+    "answer": "Family road trips to national parks. We’d camp, hike, and stargaze, which felt like adventures and sparked my love for exploration."
+  },
+  "15": {
+    "question": "What do you think were the worst parts of your childhood?",
+    "answer": "Being shy made it hard to make friends early on, and I felt left out at times. Also, moving schools once was tough—I struggled to adjust."
+  },
+  "16": {
+    "question": "Switching gears a little bit, what was your first paid job? How old were you then? (If this is not applicable to you, then please put 'NA')",
+    "answer": "I worked as a cashier at a local coffee shop when I was 16. It was my first job, and I learned how to handle customers and work under pressure."
+  },
+  "17": {
+    "question": "What other jobs have you had? (If this is not applicable to you, then please put ('NA')",
+    "answer": "I’ve worked as a tutor for high school kids in math and coding, and I’m currently a part-time intern at a tech startup, helping with software testing."
+  },
+  "18": {
+    "question": "What do you do now for a living? And why did you choose it?",
+    "answer": "I’m a college student, but I work part-time as a software testing intern. I chose it to gain hands-on experience in tech and learn how real-world software is built."
+  },
+  "19": {
+    "question": "Please describe your typical work day.",
+    "answer": "I attend classes in the morning, then head to my internship where I review code, run tests, and debug issues. After work, I study, work on personal coding projects, or hang out with friends."
+  },
+  "20": {
+    "question": "What is the best and worst part of your current work?",
+    "answer": "Best part: Learning how software development works in a real company and seeing my work make a difference. Worst part: Sometimes the tasks feel repetitive, like running the same tests repeatedly."
+  },
+  "21": {
+    "question": "Did you serve in the military? Please tell us about that experience, what was the best and worst part of it?",
+    "answer": "NA"
+  },
+  "22": {
+    "question": "Moving on, what are your adult friendships like?",
+    "answer": "My adult friendships are close but small in number. I hang out with a few college friends who share my interests in tech and gaming. We’re supportive and often collaborate on projects."
+  },
+  "23": {
+    "question": "How are your adult friendships different from your childhood friendships?",
+    "answer": "My adult friendships are more interest-driven, focused on shared goals like coding or career aspirations. Childhood friendships were more about proximity and play, less about deep common interests."
+  },
+  "24": {
+    "question": "What are your strongest qualities as a friend? In other words, what makes you a great friend to have?",
+    "answer": "I’m a good listener and dependable. If a friend needs help with a project or just someone to talk to, I’m there, and I try to offer thoughtful advice."
+  },
+  "25": {
+    "question": "What about your weakest qualities in friendships? In other words, what do you struggle with when you are trying to be a friend to someone?",
+    "answer": "I can be too reserved sometimes, which makes it hard for me to open up or initiate plans. I also get caught up in my work and forget to check in regularly."
+  },
+  "26": {
+    "question": "Moving onto more general questions, when thinking about your life in general, what are you most proud of?",
+    "answer": "I’m proud of building a functional app for a local charity during a hackathon. It helped them organize donations and felt rewarding to make a real impact."
+  },
+  "27": {
+    "question": "What hobbies or other interests do you have?",
+    "answer": "I enjoy coding personal projects, playing video games (mostly strategy and RPGs), hiking, and reading sci-fi novels."
+  },
+  "28": {
+    "question": "What things frighten you now?",
+    "answer": "I’m scared of not finding a fulfilling career after college or failing to keep up with the fast pace of the tech industry."
+  },
+  "29": {
+    "question": "What were some things that frightened you most as a child?",
+    "answer": "I was terrified of the dark and thought there were monsters under my bed. I also hated thunderstorms—they felt so unpredictable."
+  },
+  "30": {
+    "question": "What are the three biggest news events that have occurred in your lifetime?",
+    "answer": "1. The COVID-19 pandemic—it changed how we live and learn. 2. The rise of AI technologies like ChatGPT—reshaping tech and society. 3. The 2020 U.S. election—so much division and tension."
+  },
+  "31": {
+    "question": "If you had the power to solve one and only one problem in the world, what would it be, and why?",
+    "answer": "Climate change. It’s a massive threat to the planet, and solving it would ensure a sustainable future for everyone."
+  },
+  "32": {
+    "question": "Tell me about a time when you did not know if you would make it. How did you overcome that challenge?",
+    "answer": "During my first hackathon, my team’s project crashed the night before the deadline. I was stressed and doubted we’d finish. We pulled an all-nighter, debugged the code, and divided tasks efficiently. By morning, we had a working prototype and won second place."
+  }
+}
