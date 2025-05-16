@@ -1,23 +1,34 @@
 [
-    {
-        "role": "assistant",
-        "content": "To get us started, can you tell me about yourself?"
-    },
-    {
-        "role": "assistant",
-        "content": "How many romantic relationships have you had, and why you broke up with them?"  
-    },
-    {
-        "role": "assistant",
-        "content": "What is your ideal preference in a romantic relationship?"
-    },
-    {
-        "role": "assistant",
-        "content": "What is your attitude towards marriage?"
-    },
-    {
-        "role": "assistant",
-        "content": "Do you think marriage relies more on economics or love?"
-    }
-
+    "To get us started, where are you from? Where did you grow up and what was the place like?",
+    "Thinking back, what kind of student were you in school?",
+    "Did you have a teacher or teachers that were influential? If so, why? What were they like?",
+    "What was your favorite subject in school, and why?",
+    "What was your least favorite subject in school, and why?",
+    "Still thinking back, who were your heroes when you were young and why?",
+    "When you were little, what did you want to be when you grew up? And why?",
+    "What were your dreams and plans when you graduated from high school? What made you have those dreams or plans?",
+    "If you had complete freedom, what would your dream job be, and why?",
+    "How have your dreams and goals changed throughout your life?",
+    "Shifting gears to your childhood, how would you describe the personalities of people in the family you grew up in? For example, what were your parents and/or siblings like?",
+    "How are you similar or different from your parents and/or siblings?",
+    "How do you think your similarities and/or differences influenced your relationship with them?",
+    "What was the best part of your childhood?",
+    "What do you think were the worst parts of your childhood?",
+    "Switching gears a little bit, what was your first paid job? How old were you then? (If this is not applicable to you, then please put 'NA')",
+    "What other jobs have you had? (If this is not applicable to you, then please put ('NA')",
+    "What do you do now for a living? And why did you choose it?",
+    "Please describe your typical work day.",
+    "What is the best and worst part of your current work?",
+    "Did you serve in the military? Please tell us about that experience, what was the best and worst part of it?",
+    "Moving on, what are your adult friendships like?",
+    "How are your adult friendships different from your childhood friendships?",
+    "What are your strongest qualities as a friend? In other words, what makes you a great friend to have?",
+    "What about your weakest qualities in friendships? In other words, what do you struggle with when you are trying to be a friend to someone?",
+    "Moving onto more general questions, when thinking about your life in general, what are you most proud of?",
+    "What hobbies or other interests do you have?",
+    "What things frighten you now?",
+    "What were some things that frightened you most as a child?",
+    "What are the three biggest news events that have occurred in your lifetime?",
+    "If you had the power to solve one and only one problem in the world, what would it be, and why?",
+    "Tell me about a time when you did not know if you would make it. How did you overcome that challenge?"
 ]
