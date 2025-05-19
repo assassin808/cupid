@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='chat.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="{{ url_for('static', filename='chat.js') }}"></script>
+</head>
+<body>
+    <div class="chat-container">
+        <!-- 返回主页按钮 -->
+        <a href="/" class="back-home-fixed">
+            <i class="fas fa-home"></i>
+        </a>
+
+        <!-- 聊天列表容器 -->
+        <div class="chat-list-container">
+            <div class="chat-header">
+                <h2><i class="fas fa-robot me-2"></i>Chat List</h2>
+            </div>
+            <ul id="chatList" class="chat-list">
+                <!-- 聊天列表项将通过 JavaScript 动态添加 -->
+            </ul>
+        </div>
+
+        <!-- 聊天区域容器 -->
+        <div class="chat-area-container">
+            <div class="chat-header">
+                <button id="backButton" class="back-button">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <h2 id="chatTitle"><i class="fas fa-robot me-2"></i>Select a chat</h2>
+            </div>
+            
+            <div class="chat-messages">
+                <!-- 消息将通过 JavaScript 动态添加 -->
+            </div>
+
+            <div id="noChatSelected" class="no-chat-selected">
+                <i class="fas fa-comments"></i>
+                <p>Select a chat to start messaging</p>
+            </div>
+
+            <div id="inputContainer" class="input-container">
+                <input type="text" id="messageInput" placeholder="Type your message...">
+                <button id="sendButton">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+                <button id="datingButton">
+                    <i class="fas fa-heart"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

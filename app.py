@@ -8,6 +8,7 @@ import secrets
 import json
 import os
 from Database import dbClient
+from socket_events import socketio
 app = Flask(__name__,template_folder="website",static_folder = "website/static")
 app.config['UPLOAD_FOLDER'] = 'website/static/'
 secret_key =secrets.token_hex(32)
@@ -15,7 +16,9 @@ app.secret_key = secret_key
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_COOKIE_NAME'] = 'session'
-app.permanent_session_lifetime = 3600  # session 有效期为 1 小时
+app.permanent_session_lifetime = 36000  # session 有效期为 1 小时
+
+socketio.init_app(app)
 @app.route('/',methods = ["GET"])
 def Index():
     return render_template("home.html")
@@ -221,9 +224,9 @@ def user_profile():
 def user_settings():
     return render_template('user_settings.html') 
 
-@app.route('/dicovery', methods=['GET'])
-def dicovery():
-    return render_template('index.html')
+@app.route('/discovery', methods=['GET'])
+def discovery():
+    return render_template('discovery.html')
 @app.route("/login",methods = ["POST"])
 def login():
     data = request.get_json()
@@ -269,8 +272,10 @@ def logout():
 
 @app.route('/get_user_info', methods=['GET'])
 def get_user_info():
+    information = session['logged_user']
+    information.pop('password')
     try:
-        return session['logged_user']
+        return information
     except:
         abort(401,description="Unauthorized")
         #return {"status":"fail","message":"User not logged in"}
@@ -295,8 +300,10 @@ def update_user_info():
         return {"status":"ok"}
     except:
         return {"status":"fail","message":"System Error"}
+    
+
 if __name__ == "__main__":
-    app.run(debug = True,port = 8080)
+    socketio.run(app,debug = True,port = 8080)
     
 
     

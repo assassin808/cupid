@@ -320,50 +320,70 @@
         }
     };
 
-    // 进入具体聊天时
-    //document.querySelector('.back-home-fixed').style.display = 'none';
-
-    // 返回聊天列表时
-    //document.querySelector('.back-home-fixed').style.display = '';
-
-    document.addEventListener('DOMContentLoaded', function() {
-        fetch('/get_user_info', {
-            method: 'GET',
-            credentials: 'include'
-        })
-        .then(async res => {
-            if (res.status === 401) {
+    // 验证登录状态并获取用户信息
+    async function verifyLoginAndGetUserInfo() {
+        try {
+            const response = await fetch('/get_user_info', {
+                method: 'GET',
+                credentials: 'include'
+            });
+            
+            if (response.status === 401) {
                 window.location.href = '/login_register';
-                return;
+                return null;
             }
-            const data = await res.json();
+            
+            const data = await response.json();
             if (data.status && data.status === 'not_logged_in') {
                 window.location.href = '/login_register';
-                return;
+                return null;
             }
-            console.log(data)
-            // 自动填充表单
-            if (data.information) {
-                document.getElementById('nickname').value = data.information.nickname || '';
-                document.getElementById('birthday').value = data.information.birthday || '';
-                document.getElementById('hobbies').value = data.information.hobbies || '';
-                document.getElementById('avatar').src = data.information.avatar;
-                // 性别单选框
-                if (data.information.gender) {
-                    const gender = data.information.gender;
-                    if (gender === 'male') document.getElementById('genderMale').checked = true;
-                    else if (gender === 'female') document.getElementById('genderFemale').checked = true;
-                    else if (gender === 'other') document.getElementById('genderOther').checked = true;
-                }
-                // 头像
-                if (data.information.avatar) {
-                    document.getElementById('avatarPreview').src = data.information.avatar;
-                }
-            }
-        })
-        .catch(() => {
+
+            return data.information;
+        } catch (error) {
+            console.error('Error verifying login:', error);
             window.location.href = '/login_register';
-        });
+            return null;
+        }
+    }
+
+    // 页面初始化
+    document.addEventListener('DOMContentLoaded', async function() {
+        // 验证登录并获取用户信息
+        const userInfo = await verifyLoginAndGetUserInfo();
+        if (!userInfo) return;
+
+        // 填充表单
+        if (userInfo) {
+            // Profile tab
+            document.getElementById('nickname').value = userInfo.nickname || '';
+            document.getElementById('birthday').value = userInfo.birthday || '';
+            document.getElementById('hobbies').value = userInfo.hobbies || '';
+            
+            // 性别单选框
+            if (userInfo.gender) {
+                const gender = userInfo.gender;
+                if (gender === 'male') document.getElementById('genderMale').checked = true;
+                else if (gender === 'female') document.getElementById('genderFemale').checked = true;
+                else if (gender === 'other') document.getElementById('genderOther').checked = true;
+            }
+            
+            // 头像
+            if (userInfo.avatar) {
+                document.getElementById('avatarPreview').src = userInfo.avatar;
+            }
+
+            // Account tab
+            if (userInfo.loveView) document.getElementById('loveView').value = userInfo.loveView;
+            if (userInfo.qualities) document.getElementById('qualities').value = userInfo.qualities;
+            if (userInfo.idealDate) document.getElementById('idealDate').value = userInfo.idealDate;
+            if (userInfo.relationshipType) document.getElementById('relationshipType').value = userInfo.relationshipType;
+            if (userInfo.dealbreakers) document.getElementById('dealbreakers').value = userInfo.dealbreakers;
+            if (userInfo.favDateActivity) document.getElementById('favDateActivity').value = userInfo.favDateActivity;
+            if (userInfo.longDistance) document.getElementById('longDistance').value = userInfo.longDistance;
+            if (userInfo.pets) document.getElementById('pets').value = userInfo.pets;
+            if (userInfo.datingFreq) document.getElementById('datingFreq').value = userInfo.datingFreq;
+        }
     });
 
     // 登出按钮事件

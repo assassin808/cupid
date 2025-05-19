@@ -1,3 +1,6 @@
+const userId = 1;
+const userGender = 'male'
+const userName = "Zhengyang YAN"
 class ChatAgent {
     constructor(name, id) {
         this.name = name;
@@ -71,49 +74,6 @@ $(document).ready(async function() {
     const userGender = userInfo.gender;
     const userName = userInfo.nickname;
 
-    // 初始化 Socket.IO 连接
-    const socket = io({
-        query: {
-            userId: userId
-        }
-    });
-
-    // Socket.IO 事件处理
-    socket.on('connect', () => {
-        console.log('Connected to server');
-    });
-
-    socket.on('disconnect', () => {
-        console.log('Disconnected from server');
-    });
-
-    socket.on('error', (error) => {
-        console.error('Socket error:', error);
-    });
-
-    // 接收新消息
-    socket.on('new_message', (data) => {
-        console.log('Received message:', data);
-        
-        // 检查消息是否来自当前聊天对象或发送给当前聊天对象
-        if (currentAgent && 
-            ((data.sender_id === currentAgent.id) || 
-             (data.sender_id === userId && data.receiver_id === currentAgent.id))) {
-            // 只有当消息不是自己刚刚发送的，或者是来自对方的消息时才显示
-            if (data.sender_id !== userId || data.sender_id === currentAgent.id) {
-                const isUser = data.sender_id === userId;
-                addMessage(data.content, isUser);
-            }
-        }
-        
-        // 更新聊天列表中的最后一条消息
-        const agent = agents.find(a => a.id === (data.sender_id === userId ? data.receiver_id : data.sender_id));
-        if (agent) {
-            agent.lastMessage = data.content.substring(0, 30) + (data.content.length > 30 ? '...' : '');
-            createChatList();
-        }
-    });
-
     var agents = [];
     $.ajax({
         url: "/users/get-list",
@@ -133,8 +93,6 @@ $(document).ready(async function() {
 
     let currentAgent = null;
     let chatMessages = {};
-    let typingTimeout = null;
-    let isTyping = false;
 
     // Function to load chat history
     async function loadChatHistory() {
@@ -226,13 +184,6 @@ $(document).ready(async function() {
 
     // Function to switch between chats
     function switchChat(agentId) {
-        // 清除之前的打字状态
-        $('.typing-indicator').remove();
-        if (typingTimeout) {
-            clearTimeout(typingTimeout);
-        }
-        isTyping = false;
-
         currentAgent = agents.find(a => a.id === agentId);
         console.log(currentAgent)
         // 先移除所有active
@@ -382,90 +333,31 @@ $(document).ready(async function() {
         }
     }
 
-    // 监听输入框的输入事件
-    $('#messageInput').on('input', function() {
-        if (!currentAgent) return;
-
-        // 如果之前没有在打字，发送开始打字状态
-        if (!isTyping) {
-            isTyping = true;
-            socket.emit('typing', {
-                sender_id: userId,
-                receiver_id: currentAgent.id,
-                is_typing: true
-            });
-        }
-
-        // 清除之前的定时器
-        if (typingTimeout) {
-            clearTimeout(typingTimeout);
-        }
-
-        // 设置新的定时器，3秒后发送停止打字状态
-        typingTimeout = setTimeout(() => {
-            isTyping = false;
-            socket.emit('typing', {
-                sender_id: userId,
-                receiver_id: currentAgent.id,
-                is_typing: false
-            });
-        }, 3000);
-    });
-
-    // 监听打字状态事件
-    socket.on('typing_status', (data) => {
-        if (currentAgent && data.sender_id === currentAgent.id) {
-            if (data.is_typing) {
-                // 显示打字状态
-                if (!$('.typing-indicator').length) {
-                    const typingIndicator = $('<div>').addClass('message bot-message typing-indicator');
-                    const botAvatar = $('<div>').addClass('message-avatar')
-                        .html(`<img src="${currentAgent.avatarUrl}" alt="Bot">`);
-                    typingIndicator.append(botAvatar);
-                    typingIndicator.append('<div class="message-content"><span></span><span></span><span></span></div>');
-                    $('.chat-messages').append(typingIndicator);
-                    $('.chat-messages').scrollTop($('.chat-messages')[0].scrollHeight);
-                }
-            } else {
-                // 移除打字状态
-                $('.typing-indicator').remove();
-            }
-        }
-    });
-
     // Handle send button click
     $('#sendButton').click(async function() {
         const message = $('#messageInput').val().trim();
+        console.log(message)
         if (message && currentAgent) {
-            // 清除打字状态
-            if (typingTimeout) {
-                clearTimeout(typingTimeout);
-            }
-            isTyping = false;
-            socket.emit('typing', {
-                sender_id: userId,
-                receiver_id: currentAgent.id,
-                is_typing: false
-            });
-
-            // Add user message immediately for better UX
+            // Add user message
             addMessage(message, true);
             $('#messageInput').val('');
 
-            try {
-                // Send message through Socket.IO
-                const messageData = {
-                    sender_id: userId,
-                    receiver_id: currentAgent.id,
-                    content: message
-                };
-                console.log('Sending message:', messageData);
-                socket.emit('send_message', messageData);
-            } catch (error) {
-                console.error('Error sending message:', error);
-                // Show error message to user
-                addMessage('Failed to send message. Please try again.', true);
-            }
+            // Create typing indicator
+            const typingIndicator = $('<div>').addClass('message bot-message typing-indicator');
+            const botAvatar = $('<div>').addClass('message-avatar')
+                .html(`<img src="${currentAgent.avatarUrl}" alt="Bot">`);
+            typingIndicator.append(botAvatar);
+            typingIndicator.append('<div class="message-content"><span></span><span></span><span></span></div>');
+            $('.chat-messages').append(typingIndicator);
+            $('.chat-messages').scrollTop($('.chat-messages')[0].scrollHeight);
+
+            // Get agent response
+            const agent = new ChatAgent(currentAgent.name, currentAgent.id);
+            const response = await agent.sendMessage(message);
+
+            // Remove typing indicator and add response
+            typingIndicator.remove();
+            addMessage(response, false);
         } else if (!currentAgent) {
             alert('Please select a chat first');
         }
@@ -475,6 +367,32 @@ $(document).ready(async function() {
     $('#datingButton').click(async function() {
         alert("Not available yet, please wait for the next update!")
         return;
+        const typingIndicator = $('<div>').addClass('message bot-message typing-indicator');
+        typingIndicator.html('<div class="message-content"><span></span><span></span><span></span></div>');
+        $('.chat-messages').append(typingIndicator);
+        $('.chat-messages').scrollTop($('.chat-messages')[0].scrollHeight);
+        if (currentAgent) {
+            const response = await fetch('/users/dating', {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    "user_Id": userId,
+                    user_gender: userGender,
+                    name: currentAgent.name,
+                    id: currentAgent.id,
+                    user_name: userName
+                })
+            });
+            const result = await response.json();
+            if(result.status == 'ok') {
+                loadChatHistory().then(() => switchChat(currentAgent.id));
+                typingIndicator.remove();
+            }
+        } else {
+            alert('Please select a chat first');
+        }
     });
 
     // Handle enter key press
