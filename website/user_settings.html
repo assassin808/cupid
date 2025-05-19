@@ -48,59 +48,146 @@
                     <h2 class="brand-title mb-2">User Settings</h2>
                     <div class="text-muted">View and edit your information</div>
                 </div>
-                <form id="settingsForm">
-                    <div class="mb-4 text-center">
-                        <div class="avatar-container position-relative d-inline-block" onclick="document.getElementById('avatar').click();">
-                            <img id="avatarPreview" src="" alt="Avatar" class="rounded-circle">
-                            <div class="avatar-overlay">
-                                <i class="fas fa-camera"></i>
+                <!-- Profile Tab Content -->
+                <div id="profileTab" class="tab-content">
+                    <form id="settingsForm">
+                        <div class="mb-4 text-center">
+                            <div class="avatar-container position-relative d-inline-block" onclick="document.getElementById('avatarInput').click();">
+                                <img id="avatarPreview" src="" alt="Avatar" class="rounded-circle" style="width: 120px; height: 120px; object-fit: cover;">
+                                <div class="avatar-overlay">
+                                    <i class="fas fa-camera"></i>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <input type="file" id="avatarInput" accept="image/*" style="display:none;">
+                                <small class="text-muted">Click to change avatar</small>
                             </div>
                         </div>
-                        <div class="mt-3">
-                            <input type="file" id="avatar" accept="image/*" style="display:none;">
+                        <div class="mb-3">
+                            <label for="nickname" class="form-label">
+                                <i class="fas fa-user me-2"></i>Nickname
+                            </label>
+                            <input type="text" class="form-control" id="nickname" placeholder="Enter your nickname">
                         </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="nickname" class="form-label">
-                            <i class="fas fa-user me-2"></i>Nickname
-                        </label>
-                        <input type="text" class="form-control" id="nickname" placeholder="Enter your nickname">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">
-                            <i class="fas fa-venus-mars me-2"></i>Gender
-                        </label>
-                        <div class="d-flex gap-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="gender" id="genderMale" value="male">
-                                <label class="form-check-label" for="genderMale">Male</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="gender" id="genderFemale" value="female">
-                                <label class="form-check-label" for="genderFemale">Female</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="gender" id="genderOther" value="other">
-                                <label class="form-check-label" for="genderOther">Other</label>
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-venus-mars me-2"></i>Gender
+                            </label>
+                            <div class="d-flex gap-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="gender" id="genderMale" value="male">
+                                    <label class="form-check-label" for="genderMale">Male</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="gender" id="genderFemale" value="female">
+                                    <label class="form-check-label" for="genderFemale">Female</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="gender" id="genderOther" value="other">
+                                    <label class="form-check-label" for="genderOther">Other</label>
+                                </div>
                             </div>
                         </div>
+                        <div class="mb-3">
+                            <label for="hobbies" class="form-label">
+                                <i class="fas fa-heart me-2"></i>Hobbies
+                            </label>
+                            <input type="text" class="form-control" id="hobbies" placeholder="e.g. Reading, Music, Sports">
+                        </div>
+                        <div class="mb-4">
+                            <label for="birthday" class="form-label">
+                                <i class="fas fa-birthday-cake me-2"></i>Birthday
+                            </label>
+                            <input type="date" class="form-control" id="birthday">
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-save me-2"></i>Save Changes
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Account Tab Content -->
+                <div id="accountTab" class="tab-content" style="display: none;">
+                    <div class="text-center mb-4">
+                        <div class="progress mb-3" style="height: 8px;">
+                            <div id="progressBar" class="progress-bar bg-pink" role="progressbar" style="width: 33%; background: linear-gradient(90deg, #ffb6c1, #ffc0cb);" aria-valuenow="33" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <div class="text-muted">Complete your profile information</div>
                     </div>
-                    <div class="mb-3">
-                        <label for="hobbies" class="form-label">
-                            <i class="fas fa-heart me-2"></i>Hobbies
-                        </label>
-                        <input type="text" class="form-control" id="hobbies" placeholder="e.g. Reading, Music, Sports">
-                    </div>
-                    <div class="mb-4">
-                        <label for="birthday" class="form-label">
-                            <i class="fas fa-birthday-cake me-2"></i>Birthday
-                        </label>
-                        <input type="date" class="form-control" id="birthday">
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="fas fa-save me-2"></i>Save Changes
-                    </button>
-                </form>
+                    <form id="profileForm">
+                        <div id="step1" class="step-fade active">
+                            <div class="mb-3">
+                                <label for="loveView" class="form-label">What is your view on love?</label>
+                                <select class="form-select" id="loveView">
+                                    <option value="" selected disabled>Select your view</option>
+                                    <option value="romantic">Romantic</option>
+                                    <option value="realistic">Realistic</option>
+                                    <option value="adventurous">Adventurous</option>
+                                    <option value="cautious">Cautious</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="qualities" class="form-label">What qualities do you value most in a partner?</label>
+                                <input type="text" class="form-control" id="qualities" placeholder="e.g. Honesty, Humor, Ambition">
+                            </div>
+                            <div class="mb-3">
+                                <label for="idealDate" class="form-label">Describe your ideal date</label>
+                                <textarea class="form-control" id="idealDate" rows="2" placeholder="e.g. A walk on the beach, candlelight dinner..."></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="relationshipType" class="form-label">Are you looking for a serious relationship or just fun?</label>
+                                <select class="form-select" id="relationshipType">
+                                    <option value="" selected disabled>Select one</option>
+                                    <option value="serious">Serious relationship</option>
+                                    <option value="fun">Just fun</option>
+                                    <option value="notSure">Not sure</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="dealbreakers" class="form-label">What are your dealbreakers?</label>
+                                <input type="text" class="form-control" id="dealbreakers" placeholder="e.g. Smoking, Dishonesty, ...">
+                            </div>
+                        </div>
+                        <div id="step2" class="step-fade" style="display: none;">
+                            <div class="mb-3">
+                                <label for="favDateActivity" class="form-label">What is your favorite date activity?</label>
+                                <input type="text" class="form-control" id="favDateActivity" placeholder="e.g. Movie, Hiking, Cooking together">
+                            </div>
+                            <div class="mb-3">
+                                <label for="longDistance" class="form-label">How do you feel about long-distance relationships?</label>
+                                <select class="form-select" id="longDistance">
+                                    <option value="" selected disabled>Select one</option>
+                                    <option value="ok">I'm open to it</option>
+                                    <option value="notOk">I prefer not</option>
+                                    <option value="depends">It depends</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="pets" class="form-label">Do you mind if your partner has pets?</label>
+                                <select class="form-select" id="pets">
+                                    <option value="" selected disabled>Select one</option>
+                                    <option value="love">I love pets</option>
+                                    <option value="ok">I don't mind</option>
+                                    <option value="notOk">I prefer not</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="datingFreq" class="form-label">What is your ideal dating frequency?</label>
+                                <select class="form-select" id="datingFreq">
+                                    <option value="" selected disabled>Select one</option>
+                                    <option value="daily">Every day</option>
+                                    <option value="weekly">A few times a week</option>
+                                    <option value="monthly">A few times a month</option>
+                                    <option value="rarely">Rarely</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="buttonRow" class="d-flex gap-2 mb-2 mt-4">
+                            <button type="button" id="nextStepBtn1" class="btn btn-primary w-100">Next Step</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </main>
     </div>
@@ -115,39 +202,122 @@
         window.location.href = '/';
     }
 
-    // 头像预览和上传
-    document.getElementById('avatar').onchange = function(e) {
+    // Avatar preview functionality
+    document.getElementById('avatarInput').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (file) {
+            // Check file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File size should be less than 5MB');
+                this.value = '';
+                return;
+            }
+
+            // Check file type
+            if (!file.type.startsWith('image/')) {
+                alert('Please select an image file');
+                this.value = '';
+                return;
+            }
+
             const reader = new FileReader();
-            reader.onload = function(evt) {
+            reader.onload = function(e) {
                 const avatarPreview = document.getElementById('avatarPreview');
                 avatarPreview.style.opacity = '0';
                 setTimeout(() => {
-                    avatarPreview.src = evt.target.result;
+                    avatarPreview.src = e.target.result;
                     avatarPreview.style.opacity = '1';
                 }, 200);
             };
             reader.readAsDataURL(file);
         }
-    };
+    });
 
-    // 表单提交处理
-    document.getElementById('settingsForm').onsubmit = function(e) {
+    // Handle settings form submission (Profile tab)
+    document.getElementById('settingsForm').onsubmit = async function(e) {
         e.preventDefault();
-        // 这里添加表单提交逻辑
-        const submitBtn = this.querySelector('button[type="submit"]');
+        const form = e.target;
+        
+        // Get submit button and show loading state
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn.innerHTML;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
         submitBtn.disabled = true;
         
-        // 模拟保存过程
-        setTimeout(() => {
-            submitBtn.innerHTML = '<i class="fas fa-check me-2"></i>Saved!';
+        try {
+            // Collect form data from Profile tab
+            const formData = new FormData();
+            formData.append('nickname', form.nickname.value);
+            formData.append('birthday', form.birthday.value);
+            formData.append('hobbies', form.hobbies.value);
+            
+            // Handle gender radio buttons
+            const genderMale = document.getElementById('genderMale')?.checked;
+            const genderFemale = document.getElementById('genderFemale')?.checked;
+            const genderOther = document.getElementById('genderOther')?.checked;
+            let gender = '';
+            if (genderMale) gender = 'male';
+            else if (genderFemale) gender = 'female';
+            else if (genderOther) gender = 'other';
+            if (gender) formData.append('gender', gender);
+            
+            // Handle avatar
+            const avatarInput = document.getElementById('avatarInput');
+            if (avatarInput && avatarInput.files && avatarInput.files[0]) {
+                formData.append('avatar', avatarInput.files[0]);
+            }
+
+            // Also collect Account tab data
+            const loveView = document.getElementById('loveView')?.value;
+            const qualities = document.getElementById('qualities')?.value;
+            const idealDate = document.getElementById('idealDate')?.value;
+            const relationshipType = document.getElementById('relationshipType')?.value;
+            const dealbreakers = document.getElementById('dealbreakers')?.value;
+            const favDateActivity = document.getElementById('favDateActivity')?.value;
+            const longDistance = document.getElementById('longDistance')?.value;
+            const pets = document.getElementById('pets')?.value;
+            const datingFreq = document.getElementById('datingFreq')?.value;
+
+            // Only append Account data if it exists
+            if (loveView) formData.append('loveView', loveView);
+            if (qualities) formData.append('qualities', qualities);
+            if (idealDate) formData.append('idealDate', idealDate);
+            if (relationshipType) formData.append('relationshipType', relationshipType);
+            if (dealbreakers) formData.append('dealbreakers', dealbreakers);
+            if (favDateActivity) formData.append('favDateActivity', favDateActivity);
+            if (longDistance) formData.append('longDistance', longDistance);
+            if (pets) formData.append('pets', pets);
+            if (datingFreq) formData.append('datingFreq', datingFreq);
+
+            // Send request
+            const res = await fetch('/update_user_info', {
+                method: 'POST',
+                body: formData,
+                credentials: 'include'
+            });
+
+            const result = await res.json();
+            
+            if (result.status === 'ok') {
+                // Show success message
+                submitBtn.innerHTML = '<i class="fas fa-check me-2"></i>Saved!';
+                // Redirect to home after a short delay
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 1000);
+            } else {
+                throw new Error(result.message || 'Update failed');
+            }
+        } catch (error) {
+            console.error('Error updating user information:', error);
+            // Show error message
+            submitBtn.innerHTML = '<i class="fas fa-times me-2"></i>Failed';
             setTimeout(() => {
-                submitBtn.innerHTML = '<i class="fas fa-save me-2"></i>Save Changes';
+                submitBtn.innerHTML = originalBtnText;
                 submitBtn.disabled = false;
             }, 2000);
-        }, 1500);
+            alert(error.message || 'Failed to update profile. Please try again.');
+        }
     };
 
     // 进入具体聊天时
@@ -200,6 +370,184 @@
     document.getElementById('logoutBtn').onclick = function(e) {
         e.preventDefault();
         window.location.href = '/logout';
+    };
+
+    // Tab switching functionality
+    document.querySelectorAll('.sidebar-menu .nav-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Remove active class from all links
+            document.querySelectorAll('.sidebar-menu .nav-link').forEach(l => l.classList.remove('active'));
+            // Add active class to clicked link
+            this.classList.add('active');
+            
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = 'none');
+            
+            // Show the corresponding tab content
+            if (this.textContent.includes('Profile')) {
+                document.getElementById('profileTab').style.display = 'block';
+            } else if (this.textContent.includes('Account')) {
+                document.getElementById('accountTab').style.display = 'block';
+                // Fetch and populate user information when Account tab is clicked
+                fetchUserInfo();
+            }
+        });
+    });
+
+    // Function to fetch and populate user information
+    async function fetchUserInfo() {
+        try {
+            const response = await fetch('/get_user_info', {
+                method: 'GET',
+                credentials: 'include'
+            });
+            
+            if (response.status === 401) {
+                window.location.href = '/login_register';
+                return;
+            }
+            
+            const data = await response.json();
+            if (data.status && data.status === 'not_logged_in') {
+                window.location.href = '/login_register';
+                return;
+            }
+
+            // Populate form fields if information exists
+            if (data.information) {
+                const info = data.information;
+                
+                // Populate step 1 fields
+                if (info.loveView) document.getElementById('loveView').value = info.loveView;
+                if (info.qualities) document.getElementById('qualities').value = info.qualities;
+                if (info.idealDate) document.getElementById('idealDate').value = info.idealDate;
+                if (info.relationshipType) document.getElementById('relationshipType').value = info.relationshipType;
+                if (info.dealbreakers) document.getElementById('dealbreakers').value = info.dealbreakers;
+                
+                // Populate step 2 fields
+                if (info.favDateActivity) document.getElementById('favDateActivity').value = info.favDateActivity;
+                if (info.longDistance) document.getElementById('longDistance').value = info.longDistance;
+                if (info.pets) document.getElementById('pets').value = info.pets;
+                if (info.datingFreq) document.getElementById('datingFreq').value = info.datingFreq;
+            }
+        } catch (error) {
+            console.error('Error fetching user information:', error);
+            window.location.href = '/login_register';
+        }
+    }
+
+    // Multi-step form functionality
+    function renderButtons(step) {
+        const buttonRow = document.getElementById('buttonRow');
+        buttonRow.innerHTML = '';
+        if (step === 1) {
+            buttonRow.innerHTML = '<button type="button" id="nextStepBtn1" class="btn btn-primary w-100">Next Step</button>';
+        } else if (step === 2) {
+            buttonRow.innerHTML = '<button type="button" id="prevStepBtn2" class="btn btn-outline-secondary w-50">Previous Step</button>' +
+                                  '<button type="submit" id="submitBtn" class="btn btn-primary w-50">Submit</button>';
+        }
+        // Rebind events
+        if (step === 1) {
+            document.getElementById('nextStepBtn1').onclick = function(e) { e.preventDefault(); showStep(2); };
+        } else if (step === 2) {
+            document.getElementById('prevStepBtn2').onclick = function(e) { e.preventDefault(); showStep(1); };
+        }
+    }
+
+    function showStep(step) {
+        document.getElementById('step1').style.display = step === 1 ? 'block' : 'none';
+        document.getElementById('step2').style.display = step === 2 ? 'block' : 'none';
+        
+        if(step === 1) setProgress(50);
+        if(step === 2) setProgress(100);
+        
+        renderButtons(step);
+    }
+
+    function setProgress(val) {
+        var bar = document.getElementById('progressBar');
+        bar.style.width = val + '%';
+        bar.setAttribute('aria-valuenow', val);
+    }
+
+    // Initialize the multi-step form
+    showStep(1);
+
+    // Handle profile form submission (Account tab)
+    document.getElementById('profileForm').onsubmit = async function(e) {
+        e.preventDefault();
+        const form = e.target;
+        
+        // Get submit button and show loading state
+        const submitBtn = document.getElementById('submitBtn');
+        const originalBtnText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+        submitBtn.disabled = true;
+        
+        try {
+            // Collect form data from Account tab
+            const formData = new FormData();
+            formData.append('loveView', form.loveView.value);
+            formData.append('qualities', form.qualities.value);
+            formData.append('idealDate', form.idealDate.value);
+            formData.append('relationshipType', form.relationshipType.value);
+            formData.append('dealbreakers', form.dealbreakers.value);
+            formData.append('favDateActivity', form.favDateActivity.value);
+            formData.append('longDistance', form.longDistance.value);
+            formData.append('pets', form.pets.value);
+            formData.append('datingFreq', form.datingFreq.value);
+
+            // Also collect Profile tab data
+            const nickname = document.getElementById('nickname')?.value;
+            const birthday = document.getElementById('birthday')?.value;
+            const hobbies = document.getElementById('hobbies')?.value;
+            const genderMale = document.getElementById('genderMale')?.checked;
+            const genderFemale = document.getElementById('genderFemale')?.checked;
+            const genderOther = document.getElementById('genderOther')?.checked;
+            let gender = '';
+            if (genderMale) gender = 'male';
+            else if (genderFemale) gender = 'female';
+            else if (genderOther) gender = 'other';
+            const avatarInput = document.getElementById('avatarInput');
+            
+            if (nickname !== undefined) formData.append('nickname', nickname);
+            if (birthday !== undefined) formData.append('birthday', birthday);
+            if (hobbies !== undefined) formData.append('hobbies', hobbies);
+            if (gender) formData.append('gender', gender);
+            if (avatarInput && avatarInput.files && avatarInput.files[0]) {
+                formData.append('avatar', avatarInput.files[0]);
+            }
+
+            // Send request
+            const res = await fetch('/update_user_info', {
+                method: 'POST',
+                body: formData,
+                credentials: 'include'
+            });
+
+            const result = await res.json();
+            
+            if (result.status === 'ok') {
+                // Show success message
+                submitBtn.innerHTML = '<i class="fas fa-check me-2"></i>Saved!';
+                // Redirect to home after a short delay
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 1000);
+            } else {
+                throw new Error(result.message || 'Update failed');
+            }
+        } catch (error) {
+            console.error('Error updating user information:', error);
+            // Show error message
+            submitBtn.innerHTML = '<i class="fas fa-times me-2"></i>Failed';
+            setTimeout(() => {
+                submitBtn.innerHTML = originalBtnText;
+                submitBtn.disabled = false;
+            }, 2000);
+            alert(error.message || 'Failed to update profile. Please try again.');
+        }
     };
     </script>
 </body>

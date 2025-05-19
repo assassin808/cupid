@@ -285,10 +285,13 @@ def update_user_info():
         avatar_path = os.path.join(app.config['UPLOAD_FOLDER'],'avatars', avatar.filename)
         avatar.save(avatar_path)
         form_data['avatar'] = os.path.join('static/avatars', avatar.filename)
+    else:
+        form_data['avatar'] = session['logged_user']['information']['avatar']
     db = dbClient()
     try:
         db.getCollection("Users").update_one({"_id":ObjectId(session['logged_user']['_id'])}, 
                                              {"$set":{"information": form_data}})
+        session['logged_user']['information'] = form_data
         return {"status":"ok"}
     except:
         return {"status":"fail","message":"System Error"}
