@@ -28,7 +28,7 @@
             <nav class="sidebar-menu flex-grow-1 w-100">
                 <ul class="nav flex-column w-100">
                     <li class="nav-item mb-3"><a class="nav-link active" href="#"><i class="fas fa-user me-2"></i>Profile</a></li>
-                    <li class="nav-item mb-3"><a class="nav-link" href="#"><i class="fas fa-lock me-2"></i>Account</a></li>
+                    <li class="nav-item mb-3"><a class="nav-link" href="#"><i class="fas fa-heart me-2"></i>Preference</a></li>
                     <li class="nav-item mb-3"><a class="nav-link" href="#"><i class="fas fa-bell me-2"></i>Notifications</a></li>
                     <li class="nav-item mb-3"><a class="nav-link" href="#"><i class="fas fa-shield-alt me-2"></i>Security</a></li>
                 </ul>
@@ -371,31 +371,50 @@
             // 头像
             if (userInfo.avatar) {
                 document.getElementById('avatarPreview').src = userInfo.avatar;
+                document.getElementById('avatar').src = userInfo.avatar;
             }
 
-            // Account tab
-            if (userInfo.loveView) document.getElementById('loveView').value = userInfo.loveView;
-            if (userInfo.qualities) document.getElementById('qualities').value = userInfo.qualities;
-            if (userInfo.idealDate) document.getElementById('idealDate').value = userInfo.idealDate;
-            if (userInfo.relationshipType) document.getElementById('relationshipType').value = userInfo.relationshipType;
-            if (userInfo.dealbreakers) document.getElementById('dealbreakers').value = userInfo.dealbreakers;
-            if (userInfo.favDateActivity) document.getElementById('favDateActivity').value = userInfo.favDateActivity;
-            if (userInfo.longDistance) document.getElementById('longDistance').value = userInfo.longDistance;
-            if (userInfo.pets) document.getElementById('pets').value = userInfo.pets;
-            if (userInfo.datingFreq) document.getElementById('datingFreq').value = userInfo.datingFreq;
+            // 初始化时也填充偏好设置
+            populatePreferenceFields(userInfo);
         }
     });
 
-    // 登出按钮事件
-    document.getElementById('logoutBtn').onclick = function(e) {
-        e.preventDefault();
-        window.location.href = '/logout';
-    };
+    // Function to populate preference fields
+    function populatePreferenceFields(userInfo) {
+        if (!userInfo) return;
+        
+        console.log('Populating preference fields with:', userInfo); // 添加调试日志
+        
+        // Step 1 fields
+        const loveView = document.getElementById('loveView');
+        const qualities = document.getElementById('qualities');
+        const idealDate = document.getElementById('idealDate');
+        const relationshipType = document.getElementById('relationshipType');
+        const dealbreakers = document.getElementById('dealbreakers');
+        
+        if (loveView && userInfo.loveView) loveView.value = userInfo.loveView;
+        if (qualities && userInfo.qualities) qualities.value = userInfo.qualities;
+        if (idealDate && userInfo.idealDate) idealDate.value = userInfo.idealDate;
+        if (relationshipType && userInfo.relationshipType) relationshipType.value = userInfo.relationshipType;
+        if (dealbreakers && userInfo.dealbreakers) dealbreakers.value = userInfo.dealbreakers;
+        
+        // Step 2 fields
+        const favDateActivity = document.getElementById('favDateActivity');
+        const longDistance = document.getElementById('longDistance');
+        const pets = document.getElementById('pets');
+        const datingFreq = document.getElementById('datingFreq');
+        
+        if (favDateActivity && userInfo.favDateActivity) favDateActivity.value = userInfo.favDateActivity;
+        if (longDistance && userInfo.longDistance) longDistance.value = userInfo.longDistance;
+        if (pets && userInfo.pets) pets.value = userInfo.pets;
+        if (datingFreq && userInfo.datingFreq) datingFreq.value = userInfo.datingFreq;
+    }
 
     // Tab switching functionality
     document.querySelectorAll('.sidebar-menu .nav-link').forEach(link => {
-        link.addEventListener('click', function(e) {
+        link.addEventListener('click', async function(e) {
             e.preventDefault();
+            
             // Remove active class from all links
             document.querySelectorAll('.sidebar-menu .nav-link').forEach(l => l.classList.remove('active'));
             // Add active class to clicked link
@@ -407,15 +426,22 @@
             // Show the corresponding tab content
             if (this.textContent.includes('Profile')) {
                 document.getElementById('profileTab').style.display = 'block';
-            } else if (this.textContent.includes('Account')) {
+            } else if (this.textContent.includes('Preference')) {
                 document.getElementById('accountTab').style.display = 'block';
-                // Fetch and populate user information when Account tab is clicked
-                fetchUserInfo();
+                // 获取最新数据并填充
+                const userInfo = await fetchUserInfo();
+                if (userInfo) {
+                    populatePreferenceFields(userInfo);
+                }
+            } else if (this.textContent.includes('Notifications')) {
+                alert('Notifications feature coming soon!');
+            } else if (this.textContent.includes('Security')) {
+                alert('Security settings coming soon!');
             }
         });
     });
 
-    // Function to fetch and populate user information
+    // Function to fetch user information
     async function fetchUserInfo() {
         try {
             const response = await fetch('/get_user_info', {
@@ -425,35 +451,20 @@
             
             if (response.status === 401) {
                 window.location.href = '/login_register';
-                return;
+                return null;
             }
             
             const data = await response.json();
             if (data.status && data.status === 'not_logged_in') {
                 window.location.href = '/login_register';
-                return;
+                return null;
             }
 
-            // Populate form fields if information exists
-            if (data.information) {
-                const info = data.information;
-                
-                // Populate step 1 fields
-                if (info.loveView) document.getElementById('loveView').value = info.loveView;
-                if (info.qualities) document.getElementById('qualities').value = info.qualities;
-                if (info.idealDate) document.getElementById('idealDate').value = info.idealDate;
-                if (info.relationshipType) document.getElementById('relationshipType').value = info.relationshipType;
-                if (info.dealbreakers) document.getElementById('dealbreakers').value = info.dealbreakers;
-                
-                // Populate step 2 fields
-                if (info.favDateActivity) document.getElementById('favDateActivity').value = info.favDateActivity;
-                if (info.longDistance) document.getElementById('longDistance').value = info.longDistance;
-                if (info.pets) document.getElementById('pets').value = info.pets;
-                if (info.datingFreq) document.getElementById('datingFreq').value = info.datingFreq;
-            }
+            return data.information;
         } catch (error) {
             console.error('Error fetching user information:', error);
             window.location.href = '/login_register';
+            return null;
         }
     }
 
@@ -568,6 +579,12 @@
             }, 2000);
             alert(error.message || 'Failed to update profile. Please try again.');
         }
+    };
+
+    // 登出按钮事件
+    document.getElementById('logoutBtn').onclick = function(e) {
+        e.preventDefault();
+        window.location.href = '/logout';
     };
     </script>
 </body>

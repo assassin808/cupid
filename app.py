@@ -236,7 +236,6 @@ def login():
         if user["password"] == data["password"]:
             user['_id'] = str(user['_id'])
             session['logged_user'] = user
-            print(session['logged_user'])
             return {"status":"ok"}
         else:
             return {"status":"fail","message":"Password is incorrect"}
@@ -297,6 +296,7 @@ def update_user_info():
         db.getCollection("Users").update_one({"_id":ObjectId(session['logged_user']['_id'])}, 
                                              {"$set":{"information": form_data}})
         session['logged_user']['information'] = form_data
+        session.modified = True
         return {"status":"ok"}
     except:
         return {"status":"fail","message":"System Error"}
