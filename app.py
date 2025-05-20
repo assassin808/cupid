@@ -17,7 +17,6 @@ app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_COOKIE_NAME'] = 'session'
 app.permanent_session_lifetime = 36000  # session 有效期为 1 小时
-
 socketio.init_app(app)
 @app.route('/',methods = ["GET"])
 def Index():
@@ -46,14 +45,15 @@ def getList():
 @app.route("/users/load_history", methods=["POST"])
 def load_history():
     data = request.get_json()
-    try:
-        with open("chat-history.json", "r") as f:
-            history = json.load(f)
-            history = [d for d in history if d["sender_id"]==data["id"]][0]
-            return {"conversations": history}
-    except FileNotFoundError:
-        return {"conversations": {}}
-
+    print(data)
+    db = dbClient()
+    history = db.getCollection("chat-history").find_one({"sender_id":data["id"]})
+    if history is None:
+        db.getCollection("chat-history").insert_one({"sender_id":data["id"],"chat":[]})
+        history = db.getCollection("chat-history").find_one({"sender_id":data["id"]})
+    history.pop("_id")
+    return {"conversations": history}
+"""
 @app.route("/users/chat", methods = ["POST"])
 def chat():
     if request.method == "POST":
@@ -95,7 +95,7 @@ def chat():
     f.write(json.dumps(chatHistory))
     f.close()
     return {"message": response}
-
+"""
 @app.route("/users/dating",methods = ["POST"])
 def dating():
     data = request.get_json()

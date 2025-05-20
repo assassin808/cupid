@@ -1,6 +1,7 @@
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask import request
 from datetime import datetime
+from Database import dbClient
 import json
 
 socketio = SocketIO()
@@ -89,7 +90,42 @@ def handle_message(data):
         
         # 这里可以添加消息持久化逻辑
         # 例如将消息保存到数据库
+        db = dbClient()
+        try:
+            db.getCollection("chat-history").update_one(
+                {"sender_id": sender_id, "chat.receiver_id": receiver_id},
+                {"$push": {"chat.$.content": {"type": "sent", "message": message["content"], "timestamp": message["timestamp"]}}},
+                upsert=True
+            )
+        except Exception as e:
+            db.getCollection("chat-history").update_one(
+                {"sender_id": sender_id},
+                {"$push": {"chat": {"receiver_id": receiver_id, "content": []}}},
+                upsert=True
+            )
+            db.getCollection("chat-history").update_one(
+                {"sender_id": sender_id, "chat.receiver_id": receiver_id},
+                {"$push": {"chat.$.content": {"type": "sent", "message": message["content"], "timestamp": message["timestamp"]}}},
+                upsert=True
+            )
         
+        try:
+            db.getCollection("chat-history").update_one(
+                {"sender_id": receiver_id, "chat.receiver_id": sender_id},
+                {"$push": {"chat.$.content": {"type": "received", "message": message["content"], "timestamp": message["timestamp"]}}},
+                upsert=True
+            )
+        except Exception as e:
+            db.getCollection("chat-history").update_one(
+                {"sender_id": receiver_id},
+                {"$push": {"chat": {"receiver_id": sender_id, "content": []}}},
+                upsert=True
+            )
+            db.getCollection("chat-history").update_one(
+                {"sender_id": receiver_id, "chat.receiver_id": sender_id},
+                {"$push": {"chat.$.content": {"type": "received", "message": message["content"], "timestamp": message["timestamp"]}}},
+                upsert=True
+            )
     except Exception as e:
-        print(f"Error handling message: {str(e)}")
+        print(f"Error saving message to database: {str(e)}")
         emit('error', {'message': 'Failed to send message'}, room=request.sid) 

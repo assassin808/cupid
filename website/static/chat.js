@@ -154,8 +154,9 @@ $(document).ready(async function() {
             const data = await response.json();
             chatMessages = data.conversations || {};
             History = chatMessages;
-            console.log(chatMessages);
-            // Update last messages for agents
+            // console.log(chatMessages);
+            // // Update last messages for agents
+            // console.log(agents)
             agents.forEach(agent => {
                 var agentHistory = chatMessages.chat.find(item => item.receiver_id == agent.id) || {};
                 if (agentHistory.content && agentHistory.content.length > 0) {
@@ -164,6 +165,10 @@ $(document).ready(async function() {
                 }
                 else {
                     agent.lastMessage = '';
+                    chatMessages.chat.push({
+                        receiver_id: agent.id,
+                        content: []
+                    })
                 }
             });
         } catch (error) {
