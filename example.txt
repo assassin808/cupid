@@ -1,0 +1,8 @@
+Examle 1:
+/Start
+Your action:
+{"action": {"type": "predict", "object": "Female", "question": "You see a person reading your favorite book in the park. Do you approach them to start a conversation?", "answers": "A. Yes, I approach and ask them about the book. B. No, I prefer to enjoy my time alone. C. I wait to see if we make eye contact and then decide."}, "cumulative_rate": "30", "time":"2025/8/12 Afternoon","rationale": "I chose this initial scenario to simulate a common way couples might first meet, which is through a shared interest."}
+Female answer:
+{"gender":"Female","decision": {"option":"B", "content":"No, I prefer to enjoy my time alone."},"rationale":"I don't like him."}
+Your action:
+{"action":{"type":"end"},"time":"2025/8/12 Afternoon","rationale":"The female does not start, the don' have a story then."}
