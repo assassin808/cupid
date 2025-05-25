@@ -179,26 +179,20 @@ def dating():
 @app.route("/matching",methods = ["POST"])
 def matching():
     data = request.get_json()
-
-    desiredReport = {"user_Id":data['user_Id'],"reports":[]}
-    for user in data['agents']:
-        female_agent = ''
-        male_agent = ''
-        if user['gender'] == "female":
-            male_agent = Agent("",data['user_name'],data['user_Id'])
-            female_agent = Agent("",user['name'],user['id'])
-        else:
-            female_agent = Agent("",data['user_name'],data['user_Id'])
-            male_agent = Agent("",user['name'],user['id'])
-        matching = Matching(female_agent, male_agent, user['rating'])
-        report = matching.rawMatching()
-        desiredReport['reports'].append({"reporter_id":user["id"],"report":report})
-
-
-    db = dbClient()
-    db.getCollection("report").update_one({"user_Id":data['user_Id']}, {"$set":{"reports":desiredReport['reports']}},upsert=True)
+    print(data)
+    
     return {"status":"ok"}
-
+@app.route("/users/get-matching-list",methods = ["POST"])
+def get_matching_list():
+    data = request.get_json()
+    print(data)
+    db = dbClient()
+    matching_list = db.getCollection("matching-list").find_one({"user_Id":data['user_Id']})
+    print(matching_list)
+    if matching_list is None:
+        db.getCollection("matching-list").insert_one({"user_Id":data['user_Id'],"list":[]})
+        matching_list = db.getCollection("matching-list").find_one({"user_Id":data['user_Id']})
+    return matching_list['list']
 @app.route("/report", methods = ["GET"])
 def report():
     return render_template("report.html")

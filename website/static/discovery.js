@@ -115,38 +115,55 @@ document.addEventListener('DOMContentLoaded', async () => {
     userGender = data.information.gender
     userName = data.information.nickname
     try{
-      $.ajax({
-      url:"/users/get-list",
-      method:"POST",
-      headers: { 
+      // Get users list
+      const usersResponse = await $.ajax({
+        url: "/users/get-list",
+        method: "POST",
+        headers: { 
           'Accept': 'application/json',
           'Content-Type': 'application/json' 
-      },
-      async: false,
-      dataType:"json",
-      data:JSON.stringify({
-          user_Id:userId
-      })
-      }).done(function(res){
-        users = res
-        console.log(res)
-      })
+        },
+        data: JSON.stringify({
+          user_Id: userId
+        })
+      });
+      
+      users = usersResponse;
+      
+      // Get matching list
+      const matchingResponse = await $.ajax({
+        url: "/users/get-matching-list",
+        method: "POST",
+        headers: { 
+          'Accept': 'application/json',
+          'Content-Type': 'application/json' 
+        },
+        data: JSON.stringify({
+          user_Id: userId
+        })
+      });
+      
+      // Compare and update users with matching data
+      users.forEach(user => {
+        const matchingUser = matchingResponse.find(m => m.id === user.id);
+        if (matchingUser) {
+          user.rating = matchingUser.rating;
+          user.emoji = emojiList[Math.floor(user.rating/10)];
+          user.showEmoji = true;
+        } else {
+          user.rating = 0;
+          user.showEmoji = false;
+        }
+      });
+      
       renderAvatars();
-      users.forEach((user)=>{
-        setEmojiVisible(user.id,false)
-      })
     }
     catch(e){
       alert("Network Error!")
       return;
     }
-    
-
   } catch (e) {
     window.location.href = '/login_register';
     return;
   }
-
-  
-
 }); 
