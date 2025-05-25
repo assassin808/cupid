@@ -8,6 +8,10 @@ function handleAvatarClick(agentId) {
   console.log('点击了用户ID:', agentId);
   // 这里可以添加更多点击后的处理逻辑
   user = users.find((a) => a['id'] == agentId)
+  if (!user.showEmoji) {
+    alert('This user has not been matched yet. Please click the heart button to match first!');
+    return;
+  }
   window.open(`/report?agent=${JSON.stringify(user)}&userId=${JSON.stringify(userId)}`)
 }
 
@@ -42,45 +46,58 @@ async function showHeartLoading() {
   const loadingDiv = document.getElementById('heart-loading');
   loadingDiv.innerHTML = '<div class="loader"></div>';
   loadingDiv.style.display = 'block';
-  users.forEach((user)=>{
-    randomRating = Math.floor(Math.random() * 50);
-    user.rating = randomRating;
-    user.emoji = emojiList[Math.floor(user.rating/10)]
-    user.showEmoji = true
-  })
 
-  const response = await fetch('/matching', {
-    method:"POST",
-    headers: {
-        'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-        "user_Id":userId,
-        "user_name":userName,
-        "agents":users
-    })
-  });
-  const result = await response.json();
-  if(result.status == 'ok'){
-      loadingDiv.innerHTML = '<div class="success-tip">Matching Sucess!</div>';
-      renderAvatars(true); // 显示评分
-      setTimeout(() => {
-      loadingDiv.innerHTML = '<div class="success-tip">Matching Sucess!</div>';
-      renderAvatars(true); // 显示评分
-      
-      setTimeout(() => {
-        loadingDiv.style.display = 'none';
-        loadingDiv.innerHTML = '';
-        
-        // 自动触发排序
-        animateSort(() => {
-          users.sort((a, b) => b.rating - a.rating);
-          renderAvatars(true);
+  // Process each unmatched user
+  for (const user of users) {
+    if (!user.showEmoji) {
+      try {
+        const response = await fetch('/matching', {
+          method: "POST",
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            "user_Id": userId,
+            "user_name": userName,
+            "agent": user  // Send only one user at a time
+          })
         });
-      }, 1200);
-    }, 100);
+        const result = await response.json();
+        console.log(result)
+        if (result.status === 'ok') {
+          // Update the user's rating and emoji
+          user.rating = result.cumulative_rate;
+          if(user.rating == 50){
+            user.emoji = emojiList[4];
+          }else{
+            user.emoji = emojiList[Math.floor(user.rating/10)];
+          }
+          user.showEmoji = true;
+        }
+      } catch (error) {
+        console.error('Error matching user:', error);
+      }
+    }
   }
 
+  loadingDiv.innerHTML = '<div class="success-tip">Matching Success!</div>';
+  renderAvatars(true); // 显示评分
+  
+  setTimeout(() => {
+    loadingDiv.innerHTML = '<div class="success-tip">Matching Success!</div>';
+    renderAvatars(true); // 显示评分
+    
+    setTimeout(() => {
+      loadingDiv.style.display = 'none';
+      loadingDiv.innerHTML = '';
+      
+      // 自动触发排序
+      animateSort(() => {
+        users.sort((a, b) => b.rating - a.rating);
+        renderAvatars(true);
+      });
+    }, 1200);
+  }, 100);
 }
 
 // 排序动画辅助函数
@@ -142,21 +159,23 @@ document.addEventListener('DOMContentLoaded', async () => {
           user_Id: userId
         })
       });
-      
       // Compare and update users with matching data
       users.forEach(user => {
-        const matchingUser = matchingResponse.find(m => m.id === user.id);
+        const matchingUser = matchingResponse.find(m => m.agent_id === user.id);
         if (matchingUser) {
           user.rating = matchingUser.rating;
-          user.emoji = emojiList[Math.floor(user.rating/10)];
+          if(user.rating == 50){
+            user.emoji = emojiList[4];
+          }else{
+            user.emoji = emojiList[Math.floor(user.rating/10)];
+          }
           user.showEmoji = true;
         } else {
           user.rating = 0;
           user.showEmoji = false;
         }
       });
-      
-      renderAvatars();
+      renderAvatars(true);
     }
     catch(e){
       alert("Network Error!")

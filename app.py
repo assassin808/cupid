@@ -33,13 +33,14 @@ def getList():
     db = dbClient()
     users = db.getCollection("Users").find({},{"password":0})
     list = []
+    session_user = session['logged_user'] 
     for i in users:
         try:
-            
-            if not (str(i['_id']) == data['user_Id'] and i['information']['gender'] == data['user_gender']):
+            if str(i['_id']) != session_user['_id'] and i['information']['gender'] != session_user['information']['gender']:
                 list.append({'name':i['information']['nickname'], 'id':str(i['_id']), 'avatarUrl':i['information']['avatar'], 'gender':i["information"]["gender"]})
         except:
             pass
+    print(list)
     return list
 
 @app.route("/users/load_history", methods=["POST"])
@@ -180,8 +181,27 @@ def dating():
 def matching():
     data = request.get_json()
     print(data)
-    
-    return {"status":"ok"}
+    matchingResult = ''
+    if data['agent']['gender'] == 'male':
+        matchingResult = Matching(ObjectId(data['user_Id']),ObjectId(data['agent']['id']))
+    elif data['agent']['gender'] == 'female':
+        matchingResult = Matching(ObjectId(data['agent']['id']),ObjectId(data['user_Id']))
+    simulation_result,cumulative_rate = matchingResult.simulation()
+    db = dbClient()
+    if data['agent']['gender'] == 'male':
+        db.getCollection("report").update_one({"female_id":data['user_Id'],"male_id":data['agent']['id']},{"$set":{"reports":simulation_result}},upsert=True)
+    elif data['agent']['gender'] == 'female':
+        db.getCollection("report").update_one({"male_id":data['user_Id'],"female_id":data['agent']['id']},{"$set":{"reports":simulation_result}},upsert=True)
+    db.getCollection("matching-list").update_one({"user_Id":data['user_Id']},{"$push":{"list":{
+        "agent_id":data['agent']['id'],
+        "rating":int(cumulative_rate)
+    }}},upsert=True)
+    db.getCollection("matching-list").update_one({"user_Id":data['agent']['id']},{"$push":{"list":{
+        "agent_id":data['user_Id'],
+        "rating":int(cumulative_rate)
+    }}},upsert=True)
+    return {"status":"ok","cumulative_rate":int(cumulative_rate)}
+
 @app.route("/users/get-matching-list",methods = ["POST"])
 def get_matching_list():
     data = request.get_json()
@@ -200,11 +220,15 @@ def report():
 def get_report():
     data = request.get_json()
     print(data)
-    db = dbClient()
-    reports = db.getCollection("report").find_one({"user_Id":data['user_Id']})
-    print(reports)
-    item = [d for d in reports['reports'] if d['reporter_id'] == data['agent']['id']][0]
-    return {'report':item['report']}
+    reports = ''
+    if data['agent']['gender'] == 'male':
+        db = dbClient()
+        reports = db.getCollection("report").find_one({"female_id":data['user_Id'],"male_id":data['agent']['id']})
+    elif data['agent']['gender'] == 'female':
+        db = dbClient()
+        reports = db.getCollection("report").find_one({"male_id":data['user_Id'],"female_id":data['agent']['id']})
+
+    return {'report':reports['reports']}
 
 @app.route('/login_register', methods=['GET'])
 def login_register():

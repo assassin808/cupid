@@ -80,11 +80,9 @@ $(document).ready(async function() {
 
     // Socket.IO 事件处理
     socket.on('connect', () => {
-        console.log('Connected to server');
     });
 
     socket.on('disconnect', () => {
-        console.log('Disconnected from server');
     });
 
     socket.on('error', (error) => {
@@ -93,8 +91,6 @@ $(document).ready(async function() {
 
     // 接收新消息
     socket.on('new_message', (data) => {
-        console.log('Received message:', data);
-        
         // 检查消息是否来自当前聊天对象或发送给当前聊天对象
         if (currentAgent && 
             ((data.sender_id === currentAgent.id) || 
@@ -154,9 +150,6 @@ $(document).ready(async function() {
             const data = await response.json();
             chatMessages = data.conversations || {};
             History = chatMessages;
-            // console.log(chatMessages);
-            // // Update last messages for agents
-            // console.log(agents)
             agents.forEach(agent => {
                 var agentHistory = chatMessages.chat.find(item => item.receiver_id == agent.id) || {};
                 if (agentHistory.content && agentHistory.content.length > 0) {
@@ -195,6 +188,11 @@ $(document).ready(async function() {
                         <div class="last-message">${agent.lastMessage}</div>
                     </div>
                 `);
+
+            // 添加选中效果
+            if (currentAgent && currentAgent.id === agent.id) {
+                chatItem.addClass('selected');
+            }
 
             chatItem.click(function() {
                 switchChat(agent.id);
@@ -239,13 +237,12 @@ $(document).ready(async function() {
         isTyping = false;
 
         currentAgent = agents.find(a => a.id === agentId);
-        console.log(currentAgent)
-        // 先移除所有active
-        $('.chat-list-item').removeClass('active');
-        // 只在桌面端加active
-        if (window.innerWidth >= 768) {
-            $(`.chat-list-item[data-agent-id="${agentId}"]`).addClass('active');
-        }
+        
+        // 移除所有选中效果
+        $('.chat-list-item').removeClass('selected');
+        
+        // 为当前选中的聊天添加选中效果
+        $(`.chat-list-item[data-agent-id="${agentId}"]`).addClass('selected');
 
         // Update chat title
         $('#chatTitle').html(`<i class="fas fa-user me-2"></i>${currentAgent.name}`);
@@ -260,17 +257,23 @@ $(document).ready(async function() {
             $('#backButton').show();
             $('.chat-list-container').removeClass('show');
             $('.chat-area-container').addClass('show');
-            // 再次确保active被移除
-            $('.chat-list-item').removeClass('active');
         }
 
         // Clear and load messages
         $('.chat-messages').empty();
         const agentHistory = History.chat.find(item => item.receiver_id == agentId);
-        if (agentHistory && agentHistory.content) {
+        if (agentHistory && agentHistory.content && agentHistory.content.length > 0) {
             agentHistory.content.forEach(msg => {
-                addMessage(msg.message, msg.type == "sent"?true:false, new Date(), false, false);
+                addMessage(msg.message, msg.type == "sent", new Date(), false, false);
             });
+            // 更新最新消息
+            const lastMessage = agentHistory.content[agentHistory.content.length - 1].message;
+            currentAgent.lastMessage = lastMessage.substring(0, 30) + (lastMessage.length > 30 ? '...' : '');
+            createChatList();
+        } else {
+            // 如果没有历史消息，清空最新消息
+            currentAgent.lastMessage = '';
+            createChatList();
         }
         // Scroll to bottom
         $('.chat-messages').scrollTop($('.chat-messages')[0].scrollHeight);
@@ -284,8 +287,8 @@ $(document).ready(async function() {
         $('#chatTitle').html(`<i class="fas fa-robot me-2"></i>Select a chat`);
         $('#inputContainer').hide();
         $('#noChatSelected').show();
-        // 强制移除所有active
-        $('.chat-list-item').removeClass('active');
+        // 移除所有选中效果
+        $('.chat-list-item').removeClass('selected');
         // 显示返回主页按钮
         if (window.innerWidth < 768) {
             $('.back-home-fixed').show();
@@ -294,8 +297,9 @@ $(document).ready(async function() {
 
     // Handle window resize
     $(window).resize(function() {
-        // 先全部移除active
-        $('.chat-list-item').removeClass('active');
+        // 移除所有选中效果
+        $('.chat-list-item').removeClass('selected');
+        
         if (window.innerWidth >= 768) {
             // 在桌面端，移除移动端的特殊样式
             $('.chat-list-container').removeClass('show');
@@ -307,8 +311,8 @@ $(document).ready(async function() {
                 $('#inputContainer').show();
                 $('#noChatSelected').hide();
                 $('#chatTitle').html(`<i class="fas fa-user me-2"></i>${currentAgent.name}`);
-                // 恢复active
-                $(`.chat-list-item[data-agent-id="${currentAgent.id}"]`).addClass('active');
+                // 恢复选中效果
+                $(`.chat-list-item[data-agent-id="${currentAgent.id}"]`).addClass('selected');
             } else {
                 $('#inputContainer').hide();
                 $('#noChatSelected').show();
@@ -317,15 +321,14 @@ $(document).ready(async function() {
         } else {
             // 在移动端时，如果当前有选中的聊天，显示聊天界面
             if (currentAgent) {
-                
                 $('.chat-list-container').removeClass('show');
                 $('.chat-area-container').addClass('show');
                 $('#backButton').show();
                 $('#inputContainer').show();
                 $('#noChatSelected').hide();
                 $('#chatTitle').html(`<i class="fas fa-user me-2"></i>${currentAgent.name}`);
-                // 再次确保active被移除
-                $('.chat-list-item').removeClass('active');
+                // 恢复选中效果
+                $(`.chat-list-item[data-agent-id="${currentAgent.id}"]`).addClass('selected');
             } else {
                 $('.chat-list-container').addClass('show');
                 $('.chat-area-container').removeClass('show');
@@ -333,8 +336,6 @@ $(document).ready(async function() {
                 $('#inputContainer').hide();
                 $('#noChatSelected').show();
                 $('#chatTitle').html(`<i class="fas fa-robot me-2"></i>Select a chat`);
-                // 再次确保active被移除
-                $('.chat-list-item').removeClass('active');
             }
         }
     });
@@ -381,7 +382,7 @@ $(document).ready(async function() {
                 if (agent) {
                     agent.lastMessage = message.substring(0, 30) + (message.length > 30 ? '...' : '');
                     createChatList();
-                    $(`.chat-list-item[data-agent-id="${currentAgent.id}"]`).addClass('active');
+                    $(`.chat-list-item[data-agent-id="${currentAgent.id}"]`).addClass('selected');
                 }
             }
         }
@@ -464,7 +465,6 @@ $(document).ready(async function() {
                     receiver_id: currentAgent.id,
                     content: message
                 };
-                console.log('Sending message:', messageData);
                 socket.emit('send_message', messageData);
             } catch (error) {
                 console.error('Error sending message:', error);

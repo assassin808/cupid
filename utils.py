@@ -197,6 +197,6 @@ class Matching:
             else:
                 response = json.loads(maleAgent.sendMessage("Question: {0} Answers: {1}".format(state['action']['question'],state['action']['answers'])))
             simulation_result.append(response)
-            state = json.loads(datingHost.sendMessage(response))
+            state = json.loads(datingHost.sendMessage(json.dumps(response)))
             simulation_result.append(state)
         return simulation_result,state['cumulative_rate']
