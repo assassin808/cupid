@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         } else {
           // Style for decision items based on gender
-          if (item.gender === user_gender) {
+          if (item.gender.toLowerCase() === user_gender) {
             // Style for matching gender
             itemContainer.style.backgroundColor = '#f0fff4';
             itemContainer.style.border = '1px solid #d0ffd0';
@@ -88,8 +88,8 @@ document.addEventListener('DOMContentLoaded', () => {
           const label = document.createElement('div');
           label.style.fontWeight = 'bold';
           label.style.marginBottom = '0.5rem';
-          label.style.color = item.gender === user_gender ? '#2e7d32' : '#c62828';
-          label.textContent = item.gender === user_gender ? 'You:' : `${agent.name}:`;
+          label.style.color = item.gender.toLowerCase() === user_gender ? '#2e7d32' : '#c62828';
+          label.textContent = item.gender.toLowerCase() === user_gender ? 'You:' : `${agent.name}:`;
           itemContainer.insertBefore(label, itemContainer.firstChild);
 
           // Add rationale if it exists
