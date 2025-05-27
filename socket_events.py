@@ -3,7 +3,7 @@ from flask import request
 from datetime import datetime
 from Database import dbClient
 import json
-
+import app
 socketio = SocketIO()
 
 # 存储在线用户

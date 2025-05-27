@@ -4,6 +4,8 @@ from utils import Agent
 from utils import Dating
 from utils import Matching
 from bson.objectid import ObjectId
+import redis
+from flask_session import Session
 import secrets
 import json
 import os
@@ -13,11 +15,14 @@ app = Flask(__name__,template_folder="website",static_folder = "website/static")
 app.config['UPLOAD_FOLDER'] = 'website/static/'
 secret_key =secrets.token_hex(32)
 app.secret_key = secret_key
+app.config['SESSION_TYPE'] = 'redis'
+app.config["SESSION_REDIS"] = redis.Redis(host = "localhost", port = 6379, db = 0)
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_COOKIE_NAME'] = 'session'
 app.permanent_session_lifetime = 36000  # session 有效期为 1 小时
 socketio.init_app(app)
+Session(app)
 @app.route('/',methods = ["GET"])
 def Index():
     return render_template("home.html")
@@ -254,6 +259,8 @@ def login():
         if user["password"] == data["password"]:
             user['_id'] = str(user['_id'])
             session['logged_user'] = user
+            print(session['logged_user'])
+            session.modified = True
             return {"status":"ok"}
         else:
             return {"status":"fail","message":"Password is incorrect"}
@@ -290,7 +297,8 @@ def logout():
 @app.route('/get_user_info', methods=['GET'])
 def get_user_info():
     information = session['logged_user']
-    information.pop('password')
+    print(information)
+    #information.pop('password')
     try:
         return information
     except:
@@ -321,7 +329,7 @@ def update_user_info():
     
 
 if __name__ == "__main__":
-    socketio.run(app,debug = True,port = 8080)
+    socketio.run(app,debug = True,port = 5000, host = '0.0.0.0')
     
 
     
