@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cupid AI Sandbox - Love First, Know Later</title>
+    <link rel="stylesheet" href="/static/sandbox.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="nav">
+                <a href="/" class="nav-link">🏠 Home</a>
+                <a href="/discovery" class="nav-link">💕 Discovery</a>
+                <a href="/sandbox" class="nav-link active">🧪 AI Sandbox</a>
+                <a href="/user_settings" class="nav-link">⚙️ Settings</a>
+                <a href="/logout" class="nav-link">🚪 Logout</a>
+            </div>
+            <h1 class="title">🤖 Cupid AI Sandbox</h1>
+            <p class="subtitle">Create Avatars & Watch AI Love Stories Unfold</p>
+            <p class="concept">💡 <strong>"AI as Game Engine"</strong> - Experience the future of relationship simulation</p>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Avatar Creation Section -->
+            <div class="section" id="creation-section">
+                <h2>👤 Create Test Avatars</h2>
+                <div class="avatar-forms">
+                    <!-- Avatar 1 Form -->
+                    <div class="avatar-form">
+                        <h3>Avatar 1</h3>
+                        <form id="avatar1-form">
+                            <div class="form-group">
+                                <label for="avatar1-nickname">Nickname:</label>
+                                <input type="text" id="avatar1-nickname" placeholder="e.g., Emma" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="avatar1-age">Age:</label>
+                                <input type="number" id="avatar1-age" min="18" max="100" placeholder="25" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="avatar1-gender">Gender:</label>
+                                <select id="avatar1-gender" required>
+                                    <option value="">Select...</option>
+                                    <option value="female">Female</option>
+                                    <option value="male">Male</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="avatar1-occupation">Occupation:</label>
+                                <input type="text" id="avatar1-occupation" placeholder="e.g., Software Engineer" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="avatar1-interests">Interests:</label>
+                                <textarea id="avatar1-interests" placeholder="e.g., hiking, reading, cooking..." required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="avatar1-bio">Bio/Personality:</label>
+                                <textarea id="avatar1-bio" placeholder="Describe personality, values, lifestyle..." required></textarea>
+                            </div>
+                            <button type="button" onclick="createAvatar(1)" class="btn-create">Create Avatar 1</button>
+                        </form>
+                        <div id="avatar1-preview" class="avatar-preview" style="display: none;">
+                            <div class="avatar-card">
+                                <h4 id="avatar1-name">-</h4>
+                                <p id="avatar1-details">-</p>
+                                <span class="status ready">✅ Ready</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Avatar 2 Form -->
+                    <div class="avatar-form">
+                        <h3>Avatar 2</h3>
+                        <form id="avatar2-form">
+                            <div class="form-group">
+                                <label for="avatar2-nickname">Nickname:</label>
+                                <input type="text" id="avatar2-nickname" placeholder="e.g., Alex" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="avatar2-age">Age:</label>
+                                <input type="number" id="avatar2-age" min="18" max="100" placeholder="28" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="avatar2-gender">Gender:</label>
+                                <select id="avatar2-gender" required>
+                                    <option value="">Select...</option>
+                                    <option value="female">Female</option>
+                                    <option value="male">Male</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="avatar2-occupation">Occupation:</label>
+                                <input type="text" id="avatar2-occupation" placeholder="e.g., Designer" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="avatar2-interests">Interests:</label>
+                                <textarea id="avatar2-interests" placeholder="e.g., art, travel, music..." required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="avatar2-bio">Bio/Personality:</label>
+                                <textarea id="avatar2-bio" placeholder="Describe personality, values, lifestyle..." required></textarea>
+                            </div>
+                            <button type="button" onclick="createAvatar(2)" class="btn-create">Create Avatar 2</button>
+                        </form>
+                        <div id="avatar2-preview" class="avatar-preview" style="display: none;">
+                            <div class="avatar-card">
+                                <h4 id="avatar2-name">-</h4>
+                                <p id="avatar2-details">-</p>
+                                <span class="status ready">✅ Ready</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Simulation Control Section -->
+            <div class="section" id="simulation-section">
+                <h2>🎮 AI Simulation Control</h2>
+                <div class="simulation-controls">
+                    <button id="start-simulation" class="btn-simulation" onclick="startSimulation()" disabled>
+                        🚀 Start AI Love Simulation
+                    </button>
+                    <div class="simulation-status" id="simulation-status">
+                        <span class="waiting">⏳ Create both avatars to begin simulation</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Results Section -->
+            <div class="section" id="results-section" style="display: none;">
+                <h2>📊 Live Simulation Results</h2>
+                            <div class="results-section">
+                <h2>Simulation Results</h2>
+                
+                <div class="score-display">
+                    <h3>Compatibility Score</h3>
+                    <div class="score-value">
+                        <span id="final-score">-</span>/50
+                        <span id="score-emoji">⏳</span>
+                    </div>
+                </div>
+                
+                <div class="timeline">
+                    <h3>Live Updates</h3>
+                    <div id="live-updates" class="live-updates"></div>
+                    
+                    <h3>Interaction Timeline</h3>
+                    <div id="timeline-container"></div>
+                </div>
+                
+                <div class="insights">
+                    <h3>AI Insights</h3>
+                    <div id="insights-container"></div>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="/static/sandbox.js"></script>
+</body>
+</html>

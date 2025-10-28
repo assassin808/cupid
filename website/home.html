@@ -28,6 +28,11 @@
                         <i class="fas fa-compass fa-lg me-2"></i> <span>Discovery</span>
                     </a>
                 </li>
+                <li class="mb-3">
+                    <a href="/sandbox" class="function-btn d-flex align-items-center">
+                        <i class="fas fa-flask fa-lg me-2"></i> <span>AI Sandbox</span>
+                    </a>
+                </li>
                 <li>
                     <a href="/user_settings" class="function-btn d-flex align-items-center">
                         <i class="fas fa-cog fa-lg me-2"></i> <span>Settings</span>
@@ -289,9 +294,17 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         // 你可以在这里用data渲染页面
-        document.querySelector('#nickname').textContent = data.information.nickname;
-        document.querySelector('.nickname').textContent = data.information.nickname;
-        document.querySelector('#avatar').src = data.information.avatar;
+        // Handle users without complete profile information
+        if (data.information) {
+            document.querySelector('#nickname').textContent = data.information.nickname || 'User';
+            document.querySelector('.nickname').textContent = data.information.nickname || 'User';
+            document.querySelector('#avatar').src = data.information.avatar || '/static/avatars/instance.png';
+        } else {
+            // User hasn't completed profile setup
+            document.querySelector('#nickname').textContent = 'User';
+            document.querySelector('.nickname').textContent = 'User';  
+            document.querySelector('#avatar').src = '/static/avatars/instance.png';
+        }
     })
     .catch(() => {
         // 网络错误也跳转

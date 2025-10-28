@@ -3,7 +3,7 @@ from flask import request
 from datetime import datetime
 from Database import dbClient
 import json
-import app
+
 socketio = SocketIO()
 
 # 存储在线用户
@@ -128,4 +128,66 @@ def handle_message(data):
             )
     except Exception as e:
         print(f"Error saving message to database: {str(e)}")
-        emit('error', {'message': 'Failed to send message'}, room=request.sid) 
+        emit('error', {'message': 'Failed to send message'}, room=request.sid)
+
+@socketio.on('start_sandbox_simulation')
+def handle_sandbox_simulation(data):
+    """Handle real-time sandbox simulation with streaming updates"""
+    try:
+        from bson.objectid import ObjectId
+        from utils import Matching
+        import traceback
+        
+        avatar1 = data.get('avatar1')
+        avatar2 = data.get('avatar2')
+        user_sid = request.sid
+        
+        if not avatar1 or not avatar2:
+            emit('simulation_error', {'message': 'Both avatars are required'}, room=user_sid)
+            return
+        
+        # Emit start event
+        emit('simulation_started', {'message': 'AI simulation starting...'}, room=user_sid)
+        
+        # Create temporary ObjectIds
+        temp_id1 = ObjectId()
+        temp_id2 = ObjectId()
+        
+        # Determine gender order for Matching class
+        if avatar1['gender'] == 'male' and avatar2['gender'] == 'female':
+            matchingResult = Matching(temp_id2, temp_id1)
+            matchingResult.female_info = avatar2
+            matchingResult.male_info = avatar1
+        elif avatar1['gender'] == 'female' and avatar2['gender'] == 'male':
+            matchingResult = Matching(temp_id1, temp_id2)
+            matchingResult.female_info = avatar1
+            matchingResult.male_info = avatar2
+        else:
+            matchingResult = Matching(temp_id1, temp_id2)
+            matchingResult.female_info = avatar1
+            matchingResult.male_info = avatar2
+        
+        # Pass socketio and sid for streaming updates
+        matchingResult.socketio = socketio
+        matchingResult.user_sid = user_sid
+        
+        # Run simulation
+        simulation_result, cumulative_rate = matchingResult.simulation()
+        
+        # Convert rate safely
+        try:
+            cumulative_rate_int = int(cumulative_rate) if cumulative_rate else 25
+        except:
+            cumulative_rate_int = 25
+        
+        # Emit completion
+        emit('simulation_completed', {
+            'simulation': simulation_result,
+            'cumulative_rate': cumulative_rate_int,
+            'message': 'Simulation completed successfully!'
+        }, room=user_sid)
+        
+    except Exception as e:
+        print(f"Sandbox simulation error: {e}")
+        traceback.print_exc()
+        emit('simulation_error', {'message': str(e)}, room=user_sid) 

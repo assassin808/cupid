@@ -9,7 +9,7 @@ class Agent:
         self.model = model
         self.client = OpenAI(
             base_url = "https://openrouter.ai/api/v1",
-            api_key = "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"
+            api_key = "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"
         )
 
     def sendMessage(self, content:str):
@@ -31,7 +31,7 @@ class Dating:
         self.male_questions = []
         self.client = OpenAI(
             base_url = "https://openrouter.ai/api/v1",
-            api_key = "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"
+            api_key = "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"
         )
     def startDating(self):
         #introduction
@@ -81,6 +81,16 @@ class Matching:
     def __init__(self, female, male):
         self.female = female
         self.male = male
+        self.female_info = None  # For sandbox mode
+        self.male_info = None    # For sandbox mode
+        self.socketio = None     # For streaming updates
+        self.user_sid = None     # Socket ID for streaming
+        
+    def emit_progress(self, event, data):
+        """Helper to emit progress updates if socketio is available"""
+        if self.socketio and self.user_sid:
+            self.socketio.emit(event, data, room=self.user_sid)
+        
     def simulation(self):
         db = dbClient()
         Jsonform = {
@@ -92,47 +102,78 @@ class Matching:
             "rationale":"<rationale>"
         }
         Jsonform = json.dumps(Jsonform)
-        maleAgentInfo = db.getCollection("Users").find_one({"_id":self.male},{"password":0})['information']
-        maleInterview = ""
+        
+        # Get user information - check if sandbox mode first
+        if self.male_info:
+            # Sandbox mode - use provided data
+            maleAgentInfo = self.male_info.copy()
+        else:
+            # Normal mode - get from database
+            maleAgentInfo = db.getCollection("Users").find_one({"_id":self.male},{"password":0})['information']
+        
+        maleAgentInfo.pop('avatar', None)  # Remove avatar if exists
+        
+        # Create personality description from user info
+        malePersonality = f"""
+        Nickname: {maleAgentInfo.get('nickname', 'Unknown')}
+        Gender: {maleAgentInfo.get('gender', 'Male')}
+        Age: {maleAgentInfo.get('age', 'Unknown')}
+        Location: {maleAgentInfo.get('location', 'Unknown')}
+        Occupation: {maleAgentInfo.get('occupation', 'Unknown')}
+        Interests: {maleAgentInfo.get('interests', 'Various interests')}
+        About: {maleAgentInfo.get('bio', 'A person looking for connection')}
+        """
+        
         maleInstruction = f"""
-            You are {maleAgentInfo["nickname"]}, you will meet a girl. You have a chance to fall in love with her and spend your whole rest of your life with her, but it depends you.
+            You are {maleAgentInfo.get("nickname", "a person")}, you will meet a girl. You have a chance to fall in love with her and spend your whole rest of your life with her, but it depends on you.
             No matter you like her or not, you should make the real reactions based on who you are.
             Here is your basic information:
-            {maleAgentInfo}
-            Here is your interview as a supplement document:
-            {maleInterview}
-            Your will need to make decicions in different scenario questions based on the information above. Here are the complementary information for you:
+            {malePersonality}
+            
+            Make decisions that reflect your personality and preferences. Your will need to make decisions in different scenario questions based on the information above.
             # Rationale
-            The rationale is a first-person sentence of what you are thinking when you make the decision. It should be a short sentence that explains why you are making the decicion.\
+            The rationale is a first-person sentence of what you are thinking when you make the decision. It should be a short sentence that explains why you are making the decision.
             # Output Format
             You need to make the decision and provide rationale for the action. Your output should follow a strict JSON form:
-            {
-                Jsonform
-            }
+            {Jsonform}
         """
 
-        maleAgent = Agent(maleInstruction, name = maleAgentInfo['nickname'])
+        maleAgent = Agent(maleInstruction, name = maleAgentInfo.get('nickname', 'Unknown'))
 
-        femaleAgentInfo = db.getCollection("Users").find_one({"_id":self.female},{"password":0})['information']
-        femaleAgentInfo.pop('avatar')
-        femaleInterview = ""
+        # Get female user information - check if sandbox mode first
+        if self.female_info:
+            # Sandbox mode - use provided data
+            femaleAgentInfo = self.female_info.copy()
+        else:
+            # Normal mode - get from database
+            femaleAgentInfo = db.getCollection("Users").find_one({"_id":self.female},{"password":0})['information']
+        
+        femaleAgentInfo.pop('avatar', None)
+        
+        femalePersonality = f"""
+        Nickname: {femaleAgentInfo.get('nickname', 'Unknown')}
+        Gender: {femaleAgentInfo.get('gender', 'Female')}
+        Age: {femaleAgentInfo.get('age', 'Unknown')}
+        Location: {femaleAgentInfo.get('location', 'Unknown')}
+        Occupation: {femaleAgentInfo.get('occupation', 'Unknown')}
+        Interests: {femaleAgentInfo.get('interests', 'Various interests')}
+        About: {femaleAgentInfo.get('bio', 'A person looking for connection')}
+        """
+        
         femaleInstruction = f"""
-            You are {femaleAgentInfo["nickname"]}, you will meet a boy. You have a chance to fall in love with him and spend your whole rest of your life with him, but it depends on you.
+            You are {femaleAgentInfo.get("nickname", "a person")}, you will meet a boy. You have a chance to fall in love with him and spend your whole rest of your life with him, but it depends on you.
             No matter you like him or not, you should make the real reactions based on who you are.
             Here is your basic information:
-            {femaleAgentInfo}
-            Here is your interview as a supplement document:
-            {femaleInterview}
-            Your will need to make decicions in different scenario questions based on the information above. Here are the complementary information for you:
+            {femalePersonality}
+            
+            Make decisions that reflect your personality and preferences. Your will need to make decisions in different scenario questions based on the information above.
             # Rationale
-            The rationale is a first-person sentence of what you are thinking when you make the decision. It should be a short sentence that explains why youare making the decicion.
+            The rationale is a first-person sentence of what you are thinking when you make the decision. It should be a short sentence that explains why you are making the decision.
             # Output Format
             You need to make the decision and provide rationale for the action. Your output should follow a strict JSON form:
-            {
-                Jsonform
-            }
+            {Jsonform}
         """
-        femaleAgent = Agent(femaleInstruction, name = femaleAgentInfo['nickname'])
+        femaleAgent = Agent(femaleInstruction, name = femaleAgentInfo.get('nickname', 'Unknown'))
 
         actions = [{},{}]
         actions[0] = {
@@ -158,18 +199,28 @@ class Matching:
             "rationale": "<Rationale here>"
         }
         hostform = json.dumps(hostform)
-        f = open("example.txt","r")
-        example = f.read()
+        
+        # Simplified example for the host
+        example = """Example:
+/Start
+Your action:
+{"action": {"type": "predict", "object": "Female", "question": "You meet at a coffee shop. Do you start a conversation?", "answers": "A. Yes, introduce yourself. B. No, stay quiet. C. Smile and wait."}, "cumulative_rate": "25", "time":"Day 1, Morning","rationale": "Initial meeting scenario."}
+Female answer:
+{"gender":"Female","decision": {"option":"A", "content":"Yes, introduce yourself."},"rationale":"I enjoy meeting new people."}
+Your action:
+{"action":{"type":"end"},"time":"Day 1, Afternoon","cumulative_rate":"40","rationale":"Good connection established."}
+"""
+        
         hostIntroduction = f"""
-        You are a life simulator, your job is to simulate a potential couple's aquaintance, communicaiton and ending.
+        You are a life simulator, your job is to simulate a potential couple's acquaintance, communication and ending.
         Here is the example of the interaction:
         {example}
         <IMPORTANT>
-        Your task is to make actions to provide scenario questions with options and predict the next state based on the timeline.The timeline across their whole life. The interactions should not exceed 20 interactions.
-        You need to pretend yourself a life simulator, simulate scenarios that based on the female and male choices.
-        You need to predict the next state of their interaction based on their history interaction. And give the cumulative rate of the interaction based on the history interaction. Notice: The cumulative rate can be reduced and increased based on the interaction.
+        Your task is to make actions to provide scenario questions with options and predict the next state based on the timeline. The timeline should be realistic. The interactions should not exceed 10 interactions to keep it concise.
+        You need to pretend yourself a life simulator, simulate scenarios based on the female and male choices.
+        You need to predict the next state of their interaction based on their history interaction. And give the cumulative rate of the interaction based on the history interaction. Notice: The cumulative rate can be reduced and increased based on the interaction (scale 0-50).
         You start the first predict state when you get the command "/Start"
-        You should stop when you think the interaction is over.
+        You should stop when you think the interaction should conclude (either positive or negative outcome).
         </IMPORTANT>
         # Rationale
         The rationale is a first-person sentence of what you are thinking when you make the action. It should be a short sentence that explains why you are making the action.
@@ -181,22 +232,78 @@ class Matching:
         {actions[1]}
         # Output format:
         You need to predict and provide rationale for the action. Your output should follow a strict JSON form:
-        {
-            hostform
-        }
+        {hostform}
         """
         datingHost = Agent(hostIntroduction,"Dating Host")
-        first_action = datingHost.sendMessage("/Start")
-        state = json.loads(first_action)
-        simulation_result = []
-        simulation_result.append(state)
-        while state['action']['type'] != "end":
-            response = ''
-            if state['action']['object'] == "Female":
-                response = json.loads(femaleAgent.sendMessage("Question: {0} Answers: {1}".format(state['action']['question'],state['action']['answers'])))
-            else:
-                response = json.loads(maleAgent.sendMessage("Question: {0} Answers: {1}".format(state['action']['question'],state['action']['answers'])))
-            simulation_result.append(response)
-            state = json.loads(datingHost.sendMessage(json.dumps(response)))
+        
+        try:
+            self.emit_progress('simulation_progress', {
+                'step': 'init',
+                'message': '🎬 Creating AI agents with personality profiles...'
+            })
+            
+            first_action = datingHost.sendMessage("/Start")
+            state = json.loads(first_action)
+            simulation_result = []
             simulation_result.append(state)
-        return simulation_result,state['cumulative_rate']
+            
+            self.emit_progress('simulation_progress', {
+                'step': 'scenario_generated',
+                'iteration': 1,
+                'scenario': state["action"].get("question", "Starting simulation...")
+            })
+            
+            # Limit iterations to prevent infinite loops
+            max_iterations = 10
+            iteration_count = 0
+            
+            while state['action']['type'] != "end" and iteration_count < max_iterations:
+                iteration_count += 1
+                
+                response = ''
+                if state['action']['object'] == "Female":
+                    response = json.loads(femaleAgent.sendMessage("Question: {0} Answers: {1}".format(state['action']['question'],state['action']['answers'])))
+                    self.emit_progress('simulation_progress', {
+                        'step': 'decision_made',
+                        'avatar_name': femaleAgentInfo.get('nickname', 'Female'),
+                        'gender': 'female',
+                        'decision': response.get('decision', {}),
+                        'rationale': response.get('rationale', 'No rationale provided'),
+                        'iteration': iteration_count
+                    })
+                else:
+                    response = json.loads(maleAgent.sendMessage("Question: {0} Answers: {1}".format(state['action']['question'],state['action']['answers'])))
+                    self.emit_progress('simulation_progress', {
+                        'step': 'decision_made',
+                        'avatar_name': maleAgentInfo.get('nickname', 'Male'),
+                        'gender': 'male',
+                        'decision': response.get('decision', {}),
+                        'rationale': response.get('rationale', 'No rationale provided'),
+                        'iteration': iteration_count
+                    })
+                    
+                simulation_result.append(response)
+                
+                state = json.loads(datingHost.sendMessage(json.dumps(response)))
+                simulation_result.append(state)
+                
+                self.emit_progress('simulation_progress', {
+                    'step': 'rating_updated',
+                    'cumulative_rate': state.get('cumulative_rate', 25),
+                    'max_rate': 50,
+                    'iteration': iteration_count
+                })
+                
+                # Emit next scenario if not ending
+                if state['action']['type'] != "end":
+                    self.emit_progress('simulation_progress', {
+                        'step': 'scenario_generated',
+                        'iteration': iteration_count + 1,
+                        'scenario': state["action"].get("question", "Continuing simulation...")
+                    })
+            
+            return simulation_result, state.get('cumulative_rate', '25')
+        except Exception as e:
+            print(f"Simulation error: {e}")
+            # Return a minimal result if simulation fails
+            return [{"action": {"type": "end"}, "cumulative_rate": "0", "rationale": "Simulation encountered an error"}], "0"

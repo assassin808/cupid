@@ -2,3 +2,5 @@
 .guncorn_start.sh.swp
 uwsgi.ini
 agent/
+.venv/
+__pycache__/

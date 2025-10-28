@@ -44,12 +44,18 @@ function toggleHeart() {
 
 async function showHeartLoading() {
   const loadingDiv = document.getElementById('heart-loading');
-  loadingDiv.innerHTML = '<div class="loader"></div>';
+  loadingDiv.innerHTML = '<div class="loader"></div><div style="margin-top:10px;font-size:14px;">🤖 AI Simulating Personality Interactions...</div>';
   loadingDiv.style.display = 'block';
 
   // Process each unmatched user
+  let processedCount = 0;
+  const totalUsers = users.filter(u => !u.showEmoji).length;
+  
   for (const user of users) {
     if (!user.showEmoji) {
+      processedCount++;
+      loadingDiv.innerHTML = `<div class="loader"></div><div style="margin-top:10px;font-size:14px;">🤖 AI Simulating with ${user.name}... (${processedCount}/${totalUsers})</div>`;
+      
       try {
         const response = await fetch('/matching', {
           method: "POST",
@@ -80,11 +86,11 @@ async function showHeartLoading() {
     }
   }
 
-  loadingDiv.innerHTML = '<div class="success-tip">Matching Success!</div>';
+  loadingDiv.innerHTML = '<div class="success-tip">✨ AI Matching Complete!</div>';
   renderAvatars(true); // 显示评分
   
   setTimeout(() => {
-    loadingDiv.innerHTML = '<div class="success-tip">Matching Success!</div>';
+    loadingDiv.innerHTML = '<div class="success-tip">✨ AI Matching Complete!</div>';
     renderAvatars(true); // 显示评分
     
     setTimeout(() => {
@@ -129,8 +135,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     // 已登录，继续后续逻辑
     userId = data._id
-    userGender = data.information.gender
-    userName = data.information.nickname
+    userGender = data.information ? data.information.gender : 'unknown'
+    userName = data.information ? data.information.nickname : 'User'
     try{
       // Get users list
       const usersResponse = await $.ajax({

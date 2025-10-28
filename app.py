@@ -187,25 +187,65 @@ def matching():
     data = request.get_json()
     print(data)
     matchingResult = ''
-    if data['agent']['gender'] == 'male':
-        matchingResult = Matching(ObjectId(data['user_Id']),ObjectId(data['agent']['id']))
-    elif data['agent']['gender'] == 'female':
-        matchingResult = Matching(ObjectId(data['agent']['id']),ObjectId(data['user_Id']))
-    simulation_result,cumulative_rate = matchingResult.simulation()
-    db = dbClient()
-    if data['agent']['gender'] == 'male':
-        db.getCollection("report").update_one({"female_id":data['user_Id'],"male_id":data['agent']['id']},{"$set":{"reports":simulation_result}},upsert=True)
-    elif data['agent']['gender'] == 'female':
-        db.getCollection("report").update_one({"male_id":data['user_Id'],"female_id":data['agent']['id']},{"$set":{"reports":simulation_result}},upsert=True)
-    db.getCollection("matching-list").update_one({"user_Id":data['user_Id']},{"$push":{"list":{
-        "agent_id":data['agent']['id'],
-        "rating":int(cumulative_rate)
-    }}},upsert=True)
-    db.getCollection("matching-list").update_one({"user_Id":data['agent']['id']},{"$push":{"list":{
-        "agent_id":data['user_Id'],
-        "rating":int(cumulative_rate)
-    }}},upsert=True)
-    return {"status":"ok","cumulative_rate":int(cumulative_rate)}
+    try:
+        if data['agent']['gender'] == 'male':
+            matchingResult = Matching(ObjectId(data['user_Id']),ObjectId(data['agent']['id']))
+        elif data['agent']['gender'] == 'female':
+            matchingResult = Matching(ObjectId(data['agent']['id']),ObjectId(data['user_Id']))
+        
+        simulation_result, cumulative_rate = matchingResult.simulation()
+        
+        # Convert cumulative_rate to int safely
+        try:
+            cumulative_rate_int = int(cumulative_rate) if cumulative_rate else 25
+        except:
+            cumulative_rate_int = 25
+        
+        db = dbClient()
+        
+        # Store report with better structure
+        report_data = {
+            "simulation": simulation_result,
+            "cumulative_rate": cumulative_rate_int,
+            "timestamp": str(ObjectId())
+        }
+        
+        if data['agent']['gender'] == 'male':
+            db.getCollection("report").update_one(
+                {"female_id":data['user_Id'],"male_id":data['agent']['id']},
+                {"$set":report_data},
+                upsert=True
+            )
+        elif data['agent']['gender'] == 'female':
+            db.getCollection("report").update_one(
+                {"male_id":data['user_Id'],"female_id":data['agent']['id']},
+                {"$set":report_data},
+                upsert=True
+            )
+        
+        db.getCollection("matching-list").update_one(
+            {"user_Id":data['user_Id']},
+            {"$push":{"list":{
+                "agent_id":data['agent']['id'],
+                "rating":cumulative_rate_int
+            }}},
+            upsert=True
+        )
+        db.getCollection("matching-list").update_one(
+            {"user_Id":data['agent']['id']},
+            {"$push":{"list":{
+                "agent_id":data['user_Id'],
+                "rating":cumulative_rate_int
+            }}},
+            upsert=True
+        )
+        
+        return {"status":"ok","cumulative_rate":cumulative_rate_int}
+    except Exception as e:
+        print(f"Matching error: {e}")
+        import traceback
+        traceback.print_exc()
+        return {"status":"error","message":str(e)}, 500
 
 @app.route("/users/get-matching-list",methods = ["POST"])
 def get_matching_list():
@@ -226,14 +266,21 @@ def get_report():
     data = request.get_json()
     print(data)
     reports = ''
-    if data['agent']['gender'] == 'male':
+    try:
         db = dbClient()
-        reports = db.getCollection("report").find_one({"female_id":data['user_Id'],"male_id":data['agent']['id']})
-    elif data['agent']['gender'] == 'female':
-        db = dbClient()
-        reports = db.getCollection("report").find_one({"male_id":data['user_Id'],"female_id":data['agent']['id']})
-
-    return {'report':reports['reports']}
+        if data['agent']['gender'] == 'male':
+            reports = db.getCollection("report").find_one({"female_id":data['user_Id'],"male_id":data['agent']['id']})
+        elif data['agent']['gender'] == 'female':
+            reports = db.getCollection("report").find_one({"male_id":data['user_Id'],"female_id":data['agent']['id']})
+        
+        if reports:
+            # Return the simulation data from the new structure
+            return {'report': reports.get('simulation', reports.get('reports', []))}
+        else:
+            return {'report': []}, 404
+    except Exception as e:
+        print(f"Report error: {e}")
+        return {'report': [], 'error': str(e)}, 500
 
 @app.route('/login_register', methods=['GET'])
 def login_register():
@@ -250,6 +297,94 @@ def user_settings():
 @app.route('/discovery', methods=['GET'])
 def discovery():
     return render_template('discovery.html')
+
+@app.route('/sandbox', methods=['GET'])
+def sandbox():
+    return render_template('sandbox.html')
+
+@app.route('/sandbox/create_avatar', methods=['POST'])
+def create_avatar():
+    if 'logged_user' not in session:
+        return {"status":"fail","message":"Not logged in"}, 401
+    
+    data = request.get_json()
+    avatar_number = data.get('avatarNumber')
+    avatar_data = data.get('avatarData')
+    
+    # Initialize sandbox avatars in session if not exists
+    if 'sandbox_avatars' not in session:
+        session['sandbox_avatars'] = {}
+    
+    # Store avatar in session
+    session['sandbox_avatars'][f'avatar{avatar_number}'] = avatar_data
+    session.modified = True
+    
+    return {"status":"ok","message":f"Avatar {avatar_number} created successfully"}
+
+@app.route('/sandbox/matching', methods=['POST'])
+def sandbox_matching():
+    if 'logged_user' not in session:
+        return {"status":"fail","message":"Not logged in"}, 401
+    
+    data = request.get_json()
+    avatar1 = data.get('avatar1')
+    avatar2 = data.get('avatar2')
+    
+    if not avatar1 or not avatar2:
+        return {"status":"fail","message":"Both avatars are required"}, 400
+    
+    try:
+        # Create temporary ObjectIds for sandbox avatars
+        temp_id1 = ObjectId()
+        temp_id2 = ObjectId()
+        
+        # Determine gender order for Matching class
+        if avatar1['gender'] == 'male' and avatar2['gender'] == 'female':
+            matchingResult = Matching(temp_id2, temp_id1)  # female_id, male_id
+            matchingResult.female_info = avatar2
+            matchingResult.male_info = avatar1
+        elif avatar1['gender'] == 'female' and avatar2['gender'] == 'male':
+            matchingResult = Matching(temp_id1, temp_id2)  # female_id, male_id
+            matchingResult.female_info = avatar1
+            matchingResult.male_info = avatar2
+        else:
+            # For same gender or other combinations, use first avatar as female, second as male for simulation
+            matchingResult = Matching(temp_id1, temp_id2)
+            matchingResult.female_info = avatar1
+            matchingResult.male_info = avatar2
+        
+        # Override the database lookup in Matching class for sandbox mode
+        def mock_get_user_info(user_id):
+            if str(user_id) == str(temp_id1):
+                return avatar1
+            elif str(user_id) == str(temp_id2):
+                return avatar2
+            return None
+        
+        # Temporarily replace the database access
+        original_method = matchingResult.get_user_info if hasattr(matchingResult, 'get_user_info') else None
+        
+        # Run simulation with sandbox data
+        simulation_result, cumulative_rate = matchingResult.simulation()
+        
+        # Convert cumulative_rate to int safely
+        try:
+            cumulative_rate_int = int(cumulative_rate) if cumulative_rate else 25
+        except:
+            cumulative_rate_int = 25
+        
+        return {
+            "status":"ok",
+            "simulation": simulation_result,
+            "cumulative_rate": cumulative_rate_int,
+            "message": "Sandbox simulation completed successfully"
+        }
+        
+    except Exception as e:
+        print(f"Sandbox simulation error: {e}")
+        import traceback
+        traceback.print_exc()
+        return {"status":"error","message":str(e)}, 500
 @app.route("/login",methods = ["POST"])
 def login():
     data = request.get_json()
@@ -284,7 +419,14 @@ def register():
             "password":data["password"]
         })
         db.getCollection("invitation-code").update_one({"code":data["invite"]}, {"$set":{"is_used":True}})
-        login()
+        
+        # Automatically log in the user after registration
+        user = db.getCollection("Users").find_one({"email": data["email"]})
+        if user:
+            user["_id"] = str(user["_id"])
+            session['logged_user'] = user
+            session.modified = True
+        
         return {"status":"ok"}
     except:
         return {"status":"fail","message":"System Error"}
@@ -296,14 +438,16 @@ def logout():
 
 @app.route('/get_user_info', methods=['GET'])
 def get_user_info():
-    information = session['logged_user']
-    print(information)
-    #information.pop('password')
     try:
+        if 'logged_user' not in session:
+            return {"status":"not_logged_in"}, 401
+        
+        information = session['logged_user']
+        print(information)
         return information
-    except:
-        abort(401,description="Unauthorized")
-        #return {"status":"fail","message":"User not logged in"}
+    except Exception as e:
+        print(f"Get user info error: {e}")
+        return {"status":"not_logged_in"}, 401
 @app.route('/update_user_info', methods=['POST'])
 def update_user_info():
     if 'logged_user' not in session:
@@ -329,7 +473,7 @@ def update_user_info():
     
 
 if __name__ == "__main__":
-    socketio.run(app,debug = True,port = 5000, host = '0.0.0.0')
+    socketio.run(app,debug = True,port = 5001, host = '0.0.0.0')
     
 
     

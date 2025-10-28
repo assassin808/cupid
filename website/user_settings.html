@@ -339,7 +339,7 @@
                 return null;
             }
 
-            return data.information;
+            return data.information || {};
         } catch (error) {
             console.error('Error verifying login:', error);
             window.location.href = '/login_register';
@@ -459,7 +459,7 @@
                 return null;
             }
 
-            return data.information;
+            return data.information || {};
         } catch (error) {
             console.error('Error fetching user information:', error);
             window.location.href = '/login_register';
