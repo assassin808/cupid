@@ -1,15 +1,21 @@
 from openai import OpenAI
 # role : system, assistant, user
 import json
+import os
+from dotenv import load_dotenv
 from Database import dbClient
+
+# Load environment variables from .env file
+load_dotenv()
+
 class Agent:
     def __init__(self, instruction:str, name:str,model:str = "openai/gpt-4o"): # initiate with agent pre-define -- instruction and model
         self.name = name
         self.messages = [{"role":"system", "content":instruction}]
         self.model = model
         self.client = OpenAI(
-            base_url = "https://openrouter.ai/api/v1",
-            api_key = "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"
+            base_url = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1"),
+            api_key = os.getenv("OPENROUTER_API_KEY")
         )
 
     def sendMessage(self, content:str):
@@ -30,8 +36,8 @@ class Dating:
         self.female_questions = []
         self.male_questions = []
         self.client = OpenAI(
-            base_url = "https://openrouter.ai/api/v1",
-            api_key = "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"
+            base_url = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1"),
+            api_key = os.getenv("OPENROUTER_API_KEY")
         )
     def startDating(self):
         #introduction
