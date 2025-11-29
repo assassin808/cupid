@@ -6,33 +6,68 @@ from dotenv import load_dotenv
 from Database import dbClient
 
 # Load environment variables from .env file
+
+def get_default_model():
+    """Return default LLM model for OpenRouter.
+    Uses OPENROUTER_MODEL if set, otherwise defaults to mistralai/mistral-nemo.
+    """
+    return os.getenv("OPENROUTER_MODEL", "mistralai/mistral-nemo")
+
 load_dotenv()
 
+# Check if API key is configured
+def check_api_key():
+    api_key = os.getenv("OPENROUTER_API_KEY")
+    if not api_key:
+        print("⚠️  WARNING: OPENROUTER_API_KEY not found in environment variables!")
+        print("   Please create a .env file with your OpenRouter API key:")
+        print("   OPENROUTER_API_KEY=sk-or-v1-your-key-here")
+        print("   OPENROUTER_BASE_URL=https://openrouter.ai/api/v1")
+        return False
+    return True
+
+# Run check on module load
+_api_key_configured = check_api_key()
+
 class Agent:
-    def __init__(self, instruction:str, name:str,model:str = "openai/gpt-4o"): # initiate with agent pre-define -- instruction and model
+    def __init__(self, instruction:str, name:str, model:str | None = None):  # initiate with agent pre-define -- instruction and model
         self.name = name
         self.messages = [{"role":"system", "content":instruction}]
-        self.model = model
+        # Prefer explicit model, otherwise use environment / default
+        self.model = model or get_default_model()
+        api_key = os.getenv("OPENROUTER_API_KEY")
+        if not api_key:
+            raise ValueError("OPENROUTER_API_KEY not configured! Please create a .env file with your API key.")
         self.client = OpenAI(
             base_url = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1"),
-            api_key = os.getenv("OPENROUTER_API_KEY")
+            api_key = api_key
         )
 
     def sendMessage(self, content:str):
+        """Send a message to the LLM with a sane timeout and debug logging."""
         self.messages.append({"role":"user", "content":content})
-        response = self.client.chat.completions.create(
-            model= self.model,
-            messages = self.messages
-        )
-        self.messages.append({"role":"assistant","content":response.choices[0].message.content})
-        return response.choices[0].message.content
+        try:
+            print(f"[Agent:{self.name}] Calling model {self.model} with {len(self.messages)} messages...")
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=self.messages,
+                timeout=40  # prevent hanging forever
+            )
+            msg = response.choices[0].message.content
+            self.messages.append({"role":"assistant", "content": msg})
+            print(f"[Agent:{self.name}] Received response length={len(msg)}")
+            return msg
+        except Exception as e:
+            print(f"[Agent:{self.name}] API call failed: {e}")
+            # Re-raise so Matching.simulation can handle and fallback
+            raise
 
 class Dating:
     def __init__(self, female:Agent, male:Agent):
         self.female = female
         self.male = male
         self.messages = []
-        self.model = "openai/gpt-4o"
+        self.model = get_default_model()
         self.female_questions = []
         self.male_questions = []
         self.client = OpenAI(
@@ -241,6 +276,45 @@ Your action:
         {hostform}
         """
         datingHost = Agent(hostIntroduction,"Dating Host")
+
+        def _safe_json_loads(raw: str, source: str):
+            """
+            Try to parse JSON from LLM output.
+            Handles markdown code blocks (```json ... ```) that some models return.
+            If parsing fails, wrap it into an 'end' state so the simulation can terminate gracefully.
+            """
+            import re
+            
+            text = raw or ""
+            
+            # Strip markdown code blocks if present
+            # Pattern: ```json ... ``` or ``` ... ```
+            code_block_pattern = r'```(?:json)?\s*([\s\S]*?)\s*```'
+            match = re.search(code_block_pattern, text)
+            if match:
+                text = match.group(1).strip()
+            else:
+                text = text.strip()
+            
+            try:
+                return json.loads(text)
+            except Exception as e:
+                print(f"[Matching.simulation] JSON parse error from {source}: {e}")
+                # Keep a small snippet of raw text for debugging
+                preview = (raw or "")[:300]
+                print(f"[Matching.simulation] Raw content preview ({source}): {preview}")
+                # Fallback: produce an 'end' action so frontend doesn't crash
+                return {
+                    "action": {
+                        "type": "end",
+                        "object": "System",
+                        "question": "Simulation stopped due to invalid AI output.",
+                        "answers": ""
+                    },
+                    "time": "System",
+                    "cumulative_rate": "0",
+                    "rationale": f"Simulation terminated because {source} did not return valid JSON."
+                }
         
         try:
             self.emit_progress('simulation_progress', {
@@ -249,7 +323,7 @@ Your action:
             })
             
             first_action = datingHost.sendMessage("/Start")
-            state = json.loads(first_action)
+            state = _safe_json_loads(first_action, "Dating Host (/Start)")
             simulation_result = []
             simulation_result.append(state)
             
@@ -265,10 +339,17 @@ Your action:
             
             while state['action']['type'] != "end" and iteration_count < max_iterations:
                 iteration_count += 1
+                print(f"[Simulation] Iteration {iteration_count}/{max_iterations}")
                 
                 response = ''
                 if state['action']['object'] == "Female":
-                    response = json.loads(femaleAgent.sendMessage("Question: {0} Answers: {1}".format(state['action']['question'],state['action']['answers'])))
+                    response_raw = femaleAgent.sendMessage(
+                        "Question: {0} Answers: {1}".format(
+                            state['action']['question'],
+                            state['action']['answers']
+                        )
+                    )
+                    response = _safe_json_loads(response_raw, "Female Agent")
                     self.emit_progress('simulation_progress', {
                         'step': 'decision_made',
                         'avatar_name': femaleAgentInfo.get('nickname', 'Female'),
@@ -278,7 +359,13 @@ Your action:
                         'iteration': iteration_count
                     })
                 else:
-                    response = json.loads(maleAgent.sendMessage("Question: {0} Answers: {1}".format(state['action']['question'],state['action']['answers'])))
+                    response_raw = maleAgent.sendMessage(
+                        "Question: {0} Answers: {1}".format(
+                            state['action']['question'],
+                            state['action']['answers']
+                        )
+                    )
+                    response = _safe_json_loads(response_raw, "Male Agent")
                     self.emit_progress('simulation_progress', {
                         'step': 'decision_made',
                         'avatar_name': maleAgentInfo.get('nickname', 'Male'),
@@ -290,7 +377,8 @@ Your action:
                     
                 simulation_result.append(response)
                 
-                state = json.loads(datingHost.sendMessage(json.dumps(response)))
+                host_raw = datingHost.sendMessage(json.dumps(response))
+                state = _safe_json_loads(host_raw, "Dating Host (loop)")
                 simulation_result.append(state)
                 
                 self.emit_progress('simulation_progress', {
@@ -308,8 +396,9 @@ Your action:
                         'scenario': state["action"].get("question", "Continuing simulation...")
                     })
             
+            print(f"[Simulation] Loop ended. Final state type: {state['action']['type']}, iterations: {iteration_count}")
             return simulation_result, state.get('cumulative_rate', '25')
         except Exception as e:
-            print(f"Simulation error: {e}")
+            print(f"[Simulation] Exception: {e}")
             # Return a minimal result if simulation fails
             return [{"action": {"type": "end"}, "cumulative_rate": "0", "rationale": "Simulation encountered an error"}], "0"

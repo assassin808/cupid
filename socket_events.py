@@ -133,6 +133,8 @@ def handle_message(data):
 @socketio.on('start_sandbox_simulation')
 def handle_sandbox_simulation(data):
     """Handle real-time sandbox simulation with streaming updates"""
+    print(f"[SOCKET] *** start_sandbox_simulation received! SID: {request.sid} ***")
+    print(f"[SOCKET] Data keys: {data.keys() if data else 'None'}")
     try:
         from bson.objectid import ObjectId
         from utils import Matching
@@ -153,26 +155,44 @@ def handle_sandbox_simulation(data):
         temp_id1 = ObjectId()
         temp_id2 = ObjectId()
         
-        # Determine gender order for Matching class
-        if avatar1['gender'] == 'male' and avatar2['gender'] == 'female':
-            matchingResult = Matching(temp_id2, temp_id1)
-            matchingResult.female_info = avatar2
-            matchingResult.male_info = avatar1
-        elif avatar1['gender'] == 'female' and avatar2['gender'] == 'male':
-            matchingResult = Matching(temp_id1, temp_id2)
-            matchingResult.female_info = avatar1
-            matchingResult.male_info = avatar2
+        # Determine gender order for Matching class (Legacy compatibility)
+        # We need to map our avatars to "female" and "male" slots for the engine
+        # But we track who is the "User Agent" (Avatar1)
+        
+        # Default mapping: Avatar1 -> Male role, Avatar2 -> Female role
+        # This is just for the internal engine slot, UI will render based on name/id
+        matchingResult = Matching(temp_id1, temp_id2) 
+        
+        # If genders are distinct, try to match them to roles for better prompting
+        if avatar1.get('gender') == 'female' and avatar2.get('gender') == 'male':
+             # Swap: Avatar1 is Female role, Avatar2 is Male role
+             matchingResult = Matching(temp_id1, temp_id2)
+             matchingResult.female_info = avatar1
+             matchingResult.male_info = avatar2
+        elif avatar1.get('gender') == 'male' and avatar2.get('gender') == 'female':
+             # Avatar1 is Male role, Avatar2 is Female role
+             matchingResult = Matching(temp_id2, temp_id1) # female_id, male_id
+             matchingResult.female_info = avatar2
+             matchingResult.male_info = avatar1
         else:
-            matchingResult = Matching(temp_id1, temp_id2)
-            matchingResult.female_info = avatar1
-            matchingResult.male_info = avatar2
+             # Same gender or other: Just assign slots
+             # Slot 1 (Female Role) <- Avatar 2
+             # Slot 2 (Male Role) <- Avatar 1
+             # This is arbitrary but consistent
+             matchingResult = Matching(temp_id2, temp_id1)
+             matchingResult.female_info = avatar2
+             matchingResult.male_info = avatar1
+             
+        print(f"[Sandbox] Avatar assignment: FemaleRole={matchingResult.female_info.get('nickname')}, MaleRole={matchingResult.male_info.get('nickname')}")
         
         # Pass socketio and sid for streaming updates
         matchingResult.socketio = socketio
         matchingResult.user_sid = user_sid
         
         # Run simulation
+        print("[Sandbox] Running simulation...")
         simulation_result, cumulative_rate = matchingResult.simulation()
+        print(f"[Sandbox] Simulation complete! Rate: {cumulative_rate}")
         
         # Convert rate safely
         try:
@@ -180,14 +200,49 @@ def handle_sandbox_simulation(data):
         except:
             cumulative_rate_int = 25
         
-        # Emit completion
-        emit('simulation_completed', {
+        # Save simulation to database automatically
+        # Note: In WebSocket context, we need to access session carefully
+        try:
+            from flask import session, has_request_context
+            from Database import dbClient
+            
+            user_id = None
+            if has_request_context():
+                user_id = session.get('logged_user', {}).get('_id')
+            
+            if user_id:
+                db = dbClient()
+                simulation_doc = {
+                    "user_id": user_id,
+                    "created_at": str(ObjectId()),
+                    "avatar1": avatar1,
+                    "avatar2": avatar2,
+                    "simulation": simulation_result,
+                    "cumulative_rate": cumulative_rate_int,
+                    "feedback": None
+                }
+                db.getCollection("sandbox-simulations").insert_one(simulation_doc)
+                print(f"[Sandbox] Simulation saved for user {user_id}")
+            else:
+                print("[Sandbox] No user_id found, skipping save")
+        except Exception as save_error:
+            print(f"[Sandbox] Failed to save simulation: {save_error}")
+        
+        # ALWAYS emit completion
+        print(f"[Sandbox] Emitting simulation_completed event to SID: {user_sid}")
+        socketio.emit('simulation_completed', {
             'simulation': simulation_result,
             'cumulative_rate': cumulative_rate_int,
             'message': 'Simulation completed successfully!'
-        }, room=user_sid)
+        }, to=user_sid)
+        print("[Sandbox] Done!")
         
     except Exception as e:
-        print(f"Sandbox simulation error: {e}")
+        print(f"[Sandbox] Simulation error: {e}")
         traceback.print_exc()
-        emit('simulation_error', {'message': str(e)}, room=user_sid) 
+        # Still emit completion with error state
+        socketio.emit('simulation_completed', {
+            'simulation': [],
+            'cumulative_rate': 25,
+            'message': f'Simulation ended with error: {str(e)}'
+        }, to=user_sid) 

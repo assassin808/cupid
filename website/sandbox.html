@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cupid AI Sandbox - Love First, Know Later</title>
-    <link rel="stylesheet" href="/static/sandbox.css">
+    <link rel="stylesheet" href="/static/sandbox.css?v=1764417238">
 </head>
 <body>
     <div class="container">
@@ -17,21 +17,44 @@
                 <a href="/user_settings" class="nav-link">⚙️ Settings</a>
                 <a href="/logout" class="nav-link">🚪 Logout</a>
             </div>
-            <h1 class="title">🤖 Cupid AI Sandbox</h1>
-            <p class="subtitle">Create Avatars & Watch AI Love Stories Unfold</p>
-            <p class="concept">💡 <strong>"AI as Game Engine"</strong> - Experience the future of relationship simulation</p>
+            <h1 class="title">🎬 Your Own Love Show</h1>
+            <p class="subtitle">Love First, Know Later - Watch Your AI Agent's Dating Journey</p>
+            <p class="concept">💡 <strong>"Love First, Know Later"</strong> - Experience relationships through simulation, then understand why</p>
         </header>
 
         <!-- Main Content -->
         <div class="main-content">
+            <!-- Love Trajectory Section (NEW) -->
+            <div class="section" id="trajectory-section" style="display: none;">
+                <h2>📈 Your Agent's Love Trajectory</h2>
+                <p class="section-intro">See all the people your agent has dated and how each relationship unfolded.</p>
+                <div id="trajectory-list" class="trajectory-list">
+                    <!-- Past simulations will be loaded here -->
+                </div>
+                <button type="button" class="btn-simulation" onclick="showCreationSection()" style="margin-top: 15px;">
+                    ← Back to Create New Simulation
+                </button>
+            </div>
+
             <!-- Avatar Creation Section -->
             <div class="section" id="creation-section">
-                <h2>👤 Create Test Avatars</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h2 style="margin: 0;">👤 Create Your Love Agents</h2>
+                    <button type="button" class="btn-sample" onclick="showTrajectorySection()">
+                        📈 View Love Trajectory
+                    </button>
+                </div>
                 <div class="avatar-forms">
                     <!-- Avatar 1 Form -->
                     <div class="avatar-form">
-                        <h3>Avatar 1</h3>
+                        <h3>Avatar 1（You / Your Agent）</h3>
                         <form id="avatar1-form">
+                            <div class="form-group quick-self-fill">
+                                <button type="button" id="fill-from-profile" class="btn-sample">
+                                    🪄 Use My Profile to Auto-Fill
+                                </button>
+                                <small class="helper-text">Creates your "Love Agent" based on the profile you set up in Settings</small>
+                            </div>
                             <div class="form-group">
                                 <label for="avatar1-nickname">Nickname:</label>
                                 <input type="text" id="avatar1-nickname" placeholder="e.g., Emma" required>
@@ -74,7 +97,7 @@
 
                     <!-- Avatar 2 Form -->
                     <div class="avatar-form">
-                        <h3>Avatar 2</h3>
+                        <h3>Avatar 2（Partner Agent）</h3>
                         <form id="avatar2-form">
                             <div class="form-group">
                                 <label for="avatar2-nickname">Nickname:</label>
@@ -120,7 +143,10 @@
 
             <!-- Simulation Control Section -->
             <div class="section" id="simulation-section">
-                <h2>🎮 AI Simulation Control</h2>
+                <h2>🎮 Start Your Love Show</h2>
+                <p class="section-intro">
+                    <strong>Love First, Know Later:</strong> Watch your agent experience a relationship through simulation, then understand what happened and why.
+                </p>
                 <div class="simulation-controls">
                     <button id="start-simulation" class="btn-simulation" onclick="startSimulation()" disabled>
                         🚀 Start AI Love Simulation
@@ -132,37 +158,150 @@
             </div>
 
             <!-- Live Results Section -->
+            <!-- Live Results Section (Game Stage) -->
             <div class="section" id="results-section" style="display: none;">
-                <h2>📊 Live Simulation Results</h2>
-                            <div class="results-section">
-                <h2>Simulation Results</h2>
                 
-                <div class="score-display">
-                    <h3>Compatibility Score</h3>
-                    <div class="score-value">
-                        <span id="final-score">-</span>/50
-                        <span id="score-emoji">⏳</span>
+                <!-- Dating Sim Game Stage -->
+                <div class="game-stage" id="game-stage">
+                    <div class="game-header">
+                        <span>💕 Love Simulation</span>
+                        <div class="game-score-badge">
+                            <span>Compatibility:</span>
+                            <span id="game-score-val">25</span>/50
+                            <span id="game-score-emoji">😊</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Game Content Area - Chat bubbles go here -->
+                    <div class="game-content" id="game-content">
+                        <div class="system-event">
+                            <span class="system-badge">SYSTEM</span>
+                            <div class="system-text">Waiting for simulation to start...</div>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="timeline">
-                    <h3>Live Updates</h3>
-                    <div id="live-updates" class="live-updates"></div>
-                    
-                    <h3>Interaction Timeline</h3>
-                    <div id="timeline-container"></div>
+                <!-- Character Avatars (Visual Novel Style) -->
+                <div class="character-portraits">
+                    <div class="char-portrait char-left">
+                        <div class="char-avatar-circle" id="char-avatar-left">👤</div>
+                        <div class="char-name" id="char-name-left">Partner</div>
+                    </div>
+                    <div class="char-portrait char-right">
+                        <div class="char-avatar-circle" id="char-avatar-right">👤</div>
+                        <div class="char-name" id="char-name-right">You</div>
+                    </div>
                 </div>
                 
-                <div class="insights">
-                    <h3>AI Insights</h3>
-                    <div id="insights-container"></div>
+                <div style="margin-top: 15px; text-align: center;">
+                    <button type="button" class="btn-sample" onclick="showTrajectorySection()">
+                        📈 View All Love Stories
+                    </button>
                 </div>
-            </div>
+                
+                <!-- Love Observer Section -->
+                <div class="observer-section" id="observer-section" style="display: none;">
+                    <div class="observer-card" id="observer-card">
+                        <h3>🎥 Love Observer Commentary</h3>
+                        <p id="observer-comment">
+                            After completing a simulation, our AI will analyze the relationship dynamics.
+                        </p>
+                        <div class="observer-stats" id="observer-stats" style="display: none;">
+                            <div class="stat-row">
+                                <span class="stat-label">Relationship Dynamic:</span>
+                                <span class="stat-value" id="stat-dynamic">-</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Your Agent's Style:</span>
+                                <span class="stat-value" id="stat-style">-</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Key Turning Point:</span>
+                                <span class="stat-value" id="stat-turning">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section" id="feedback-section" style="display: none;">
+                    <h2>🎧 Be Your Own Love Observer</h2>
+                    <p class="feedback-intro">
+                        After watching this "love story unfold," help us understand: Does your Agent act like YOU?
+                    </p>
+                    
+                    <div id="key-moments-container" class="key-moments-container">
+                        <!-- Key moments feedback cards will be injected here -->
+                    </div>
+                    
+                    <div class="global-feedback">
+                        <!-- Agent Likeness -->
+                        <div class="form-group">
+                            <label for="likeness-score">Overall, does this Agent feel like you? (0-10)</label>
+                            <input type="range" id="likeness-score" min="0" max="10" value="7">
+                            <div class="range-labels">
+                                <span>Not at all</span><span>Somewhat</span><span>Exactly like me</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Experience Survey -->
+                        <div class="survey-section">
+                            <h4>📊 Quick Experience Survey</h4>
+                            
+                            <div class="survey-question">
+                                <label>How engaging was the simulation?</label>
+                                <div class="survey-options">
+                                    <label><input type="radio" name="engagement" value="very_engaging"> 🔥 Very engaging</label>
+                                    <label><input type="radio" name="engagement" value="somewhat"> 😊 Somewhat engaging</label>
+                                    <label><input type="radio" name="engagement" value="neutral"> 😐 Neutral</label>
+                                    <label><input type="radio" name="engagement" value="boring"> 😴 Not very engaging</label>
+                                </div>
+                            </div>
+                            
+                            <div class="survey-question">
+                                <label>The scenarios felt...</label>
+                                <div class="survey-options horizontal">
+                                    <label><input type="checkbox" name="scenario-feel" value="realistic"> Realistic</label>
+                                    <label><input type="checkbox" name="scenario-feel" value="dramatic"> Dramatic enough</label>
+                                    <label><input type="checkbox" name="scenario-feel" value="too_simple"> Too simple</label>
+                                    <label><input type="checkbox" name="scenario-feel" value="creative"> Creative</label>
+                                </div>
+                            </div>
+                            
+                            <div class="survey-question">
+                                <label>Would you use this to...</label>
+                                <div class="survey-options horizontal">
+                                    <label><input type="checkbox" name="use-case" value="self_reflection"> Reflect on my dating style</label>
+                                    <label><input type="checkbox" name="use-case" value="fun"> Just for fun</label>
+                                    <label><input type="checkbox" name="use-case" value="compatibility"> Test compatibility</label>
+                                    <label><input type="checkbox" name="use-case" value="share_friends"> Share with friends</label>
+                                </div>
+                            </div>
+                            
+                            <div class="survey-question">
+                                <label>What would make this better? (optional)</label>
+                                <div class="survey-options horizontal">
+                                    <label><input type="checkbox" name="improvements" value="more_scenarios"> More scenarios</label>
+                                    <label><input type="checkbox" name="improvements" value="deeper_convo"> Deeper conversations</label>
+                                    <label><input type="checkbox" name="improvements" value="more_drama"> More drama!</label>
+                                    <label><input type="checkbox" name="improvements" value="real_chat"> Real-time chat</label>
+                                    <label><input type="checkbox" name="improvements" value="voice"> Voice interaction</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button type="button" id="submit-feedback" class="btn-simulation">
+                            ✅ Submit Feedback
+                        </button>
+                        <p class="feedback-note">
+                            Your feedback helps us improve. All data is anonymized.
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-    <script src="/static/sandbox.js"></script>
+    <script src="/static/sandbox.js?v=1764417234"></script>
 </body>
 </html>

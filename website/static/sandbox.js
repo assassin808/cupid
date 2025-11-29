@@ -8,6 +8,12 @@ let avatars = {
 
 let simulationRunning = false;
 let socket = null;
+// current simulation + feedback state
+let currentSimulation = {
+    simulation: [],
+    cumulative_rate: null,
+    keyMoments: []
+};
 
 // Sample avatars for quick testing
 const sampleAvatars = {
@@ -50,7 +56,44 @@ document.addEventListener('DOMContentLoaded', function() {
     checkBothAvatarsReady();
     addSampleButtons();
     initializeSocket();
+    bindProfileFillButton();
+    bindFeedbackSubmit();
 });
+
+// Bind "use my profile" quick fill for Avatar1
+function bindProfileFillButton() {
+    const btn = document.getElementById('fill-from-profile');
+    if (!btn) return;
+    btn.addEventListener('click', async () => {
+        try {
+            const res = await fetch('/get_user_info', {
+                method: 'GET',
+                credentials: 'include'
+            });
+            if (!res.ok) {
+                showMessage('Please log in first to use AI Sandbox', 'warning');
+                return;
+            }
+            const data = await res.json();
+            if (data.status === 'not_logged_in') {
+                showMessage('Please log in first to use AI Sandbox', 'warning');
+                return;
+            }
+            const info = data.information || {};
+            // Map user profile to avatar1 fields
+            if (info.nickname) document.getElementById('avatar1-nickname').value = info.nickname;
+            if (info.age) document.getElementById('avatar1-age').value = parseInt(info.age);
+            if (info.gender) document.getElementById('avatar1-gender').value = info.gender;
+            if (info.occupation) document.getElementById('avatar1-occupation').value = info.occupation;
+            if (info.interests) document.getElementById('avatar1-interests').value = info.interests;
+            if (info.bio) document.getElementById('avatar1-bio').value = info.bio;
+            showMessage('Pre-filled Avatar 1 with your profile ✨', 'success');
+        } catch (e) {
+            console.error(e);
+            showMessage('Failed to fetch profile, please try again', 'error');
+        }
+    });
+}
 
 // Initialize Socket.IO
 function initializeSocket() {
@@ -68,41 +111,64 @@ function initializeSocket() {
     socket.on('simulation_progress', function(data) {
         console.log('Progress update:', data);
         
+        // Determine if it's the user's agent (avatar1)
+        // In sandbox, avatar1 is "You" (male or female)
+        // data.gender helps, but we need to know which one is avatar1
+        // Logic: Check if name matches Avatar 1 (User)
+        // Avatar 1 is always "Right" side
+        let isUserAgent = false;
+        if (avatars.avatar1 && data.avatar_name) {
+            // Loose match to handle potential name truncation or case
+            isUserAgent = (avatars.avatar1.nickname === data.avatar_name);
+        } else {
+            // Fallback to gender if name is missing (legacy)
+            isUserAgent = (avatars.avatar1 && avatars.avatar1.gender === data.gender);
+        }
+
         // Handle different types of progress updates
         if (data.step === 'scenario_generated') {
-            addLiveScenario(data.iteration, data.scenario);
-        } else if (data.step === 'decision_made') {
-            addLiveDecision(
-                data.avatar_name,
-                data.gender,
-                data.decision,
-                data.rationale
-            );
-        } else if (data.step === 'rating_updated') {
-            document.getElementById('final-score').textContent = data.cumulative_rate || '-';
-            updateScoreEmoji(data.cumulative_rate);
+            addLiveScenario(data.iteration, data.scenario); // Legacy
+            addGameScenario(data.scenario); // NEW
             
-            // Add score update to live feed
-            const liveContainer = document.getElementById('live-updates');
-            if (liveContainer) {
-                const scoreDiv = document.createElement('div');
-                scoreDiv.className = 'live-score-update';
-                scoreDiv.innerHTML = `
-                    💕 Compatibility Score Updated: 
-                    <span class="score-number">${data.cumulative_rate}/50</span>
-                `;
-                liveContainer.appendChild(scoreDiv);
-                liveContainer.scrollTop = liveContainer.scrollHeight;
-            }
+        } else if (data.step === 'decision_made') {
+            addLiveDecision(data.avatar_name, data.gender, data.decision, data.rationale); // Legacy
+            addGameMessage(data.avatar_name, data.gender, data.decision, data.rationale, isUserAgent); // NEW
+            
+        } else if (data.step === 'rating_updated') {
+            // Legacy updates
+            const legacyScore = document.getElementById('final-score');
+            if (legacyScore) legacyScore.textContent = data.cumulative_rate || '-';
+            
+            // NEW Game updates
+            updateGameScore(data.cumulative_rate);
         }
     });
     
     socket.on('simulation_completed', function(data) {
-        console.log('Simulation completed:', data);
+        console.log('=== SIMULATION COMPLETED EVENT RECEIVED ===');
+        console.log('Data:', JSON.stringify(data).substring(0, 500));
+        alert('Simulation completed! Score: ' + (data.cumulative_rate || 'N/A')); // Temporary alert for debugging
         simulationRunning = false;
         
+        // Save current simulation for feedback use
+        currentSimulation.simulation = data.simulation || [];
+        currentSimulation.cumulative_rate = data.cumulative_rate || 25;
+        currentSimulation.keyMoments = extractKeyMoments(currentSimulation.simulation);
+        // Also save partner info for trajectory
+        currentSimulation.partner_persona = avatars.avatar2;
+
         // Display final results
         displaySimulationResults(data);
+        renderObserverComment(currentSimulation);
+        renderFeedbackPanel(currentSimulation);
+        
+        // Auto-scroll to observer/survey area for better UX
+        setTimeout(() => {
+            const target = document.getElementById('observer-section') || document.getElementById('feedback-section');
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }, 300);
         
         // Update UI
         const startButton = document.getElementById('start-simulation');
@@ -297,28 +363,62 @@ async function startSimulation() {
     
     // Clear previous live updates
     const timelineContainer = document.getElementById('timeline-container');
-    timelineContainer.innerHTML = '<div id="live-updates" class="live-updates"></div>';
+    if (timelineContainer) timelineContainer.innerHTML = '<div id="live-updates" class="live-updates"></div>';
+    
+    // Initialize Game Stage
+    initGameStage();
     
     // Emit to Socket.IO
+    console.log('[DEBUG] About to emit start_sandbox_simulation');
+    console.log('[DEBUG] Socket connected:', socket.connected);
+    console.log('[DEBUG] Avatar1:', avatars.avatar1?.nickname);
+    console.log('[DEBUG] Avatar2:', avatars.avatar2?.nickname);
+    
     socket.emit('start_sandbox_simulation', {
         avatar1: avatars.avatar1,
         avatar2: avatars.avatar2
     });
+    
+    console.log('[DEBUG] Emitted start_sandbox_simulation');
+    
+    // Safety timeout
+    setTimeout(() => {
+        if (simulationRunning && document.getElementById('game-content').children.length <= 1) {
+            // If still running but no content after 30s (only system init msg)
+            showMessage('Simulation is taking longer than expected. Please check your connection.', 'warning');
+            
+            // Reset button to allow retry
+            const startButton = document.getElementById('start-simulation');
+            const statusElement = document.getElementById('simulation-status');
+            startButton.disabled = false;
+            startButton.textContent = '🔄 Retry Simulation';
+            startButton.classList.remove('loading');
+            statusElement.innerHTML = '<span class="error">⚠️ Connection timed out. Try again?</span>';
+            simulationRunning = false;
+        }
+    }, 30000); // 30s timeout
 }
 
 // Initialize results display
 function initializeResultsDisplay() {
-    document.getElementById('final-score').textContent = '-';
-    document.getElementById('score-emoji').textContent = '⏳';
-    document.getElementById('timeline-container').innerHTML = '<p class="loading-text">AI agents are interacting...</p>';
-    document.getElementById('insights-container').innerHTML = '<p class="loading-text">Analyzing compatibility...</p>';
+    const fs1 = document.getElementById('final-score'); if (fs1) fs1.textContent = '-';
+    const se1 = document.getElementById('score-emoji'); if (se1) se1.textContent = '⏳';
+    const tc1 = document.getElementById('timeline-container'); if (tc1) tc1.innerHTML = '<p class="loading-text">AI agents are interacting...</p>';
+    const insightsEl = document.getElementById('insights-container');
+    if (insightsEl) insightsEl.innerHTML = '<p class="loading-text">Analyzing compatibility...</p>';
+    const feedbackSection = document.getElementById('feedback-section');
+    if (feedbackSection) {
+        feedbackSection.style.display = 'none';
+        const keyContainer = document.getElementById('key-moments-container');
+        if (keyContainer) keyContainer.innerHTML = '';
+    }
 }
 
 // Display simulation results
 function displaySimulationResults(result) {
     // Display compatibility score
     const score = result.cumulative_rate || 25;
-    document.getElementById('final-score').textContent = score;
+    const fs2 = document.getElementById('final-score'); if (fs2) fs2.textContent = score;
     
     // Update score emoji
     updateScoreEmoji(score);
@@ -353,10 +453,10 @@ function updateScoreEmoji(score) {
         0: '💔', 10: '😐', 20: '🙂', 30: '😊', 40: '😍', 50: '💕'
     };
     const emojiKey = Math.floor(score / 10) * 10;
-    document.getElementById('score-emoji').textContent = emojiMap[emojiKey] || '💝';
+    const se2 = document.getElementById('score-emoji'); if (se2) se2.textContent = emojiMap[emojiKey] || '💝';
 }
 
-// Display interaction timeline
+// Display interaction timeline as "episodes"
 function displayTimeline(simulationData) {
     const timelineContainer = document.getElementById('timeline-container');
     timelineContainer.innerHTML = '';
@@ -366,47 +466,88 @@ function displayTimeline(simulationData) {
         return;
     }
     
-    simulationData.forEach((event, index) => {
-        const eventElement = document.createElement('div');
-        eventElement.className = 'timeline-event';
+    // Group events into episodes: Host state -> Agent decision -> Host state ...
+    let episodeIndex = 0;
+    for (let i = 0; i < simulationData.length; ) {
+        const hostState = simulationData[i];
+        const decision = simulationData[i + 1];
+        const nextState = simulationData[i + 2];
         
-        // Determine event type
-        if (event.decision) {
-            eventElement.classList.add('decision');
-        } else {
-            eventElement.classList.add('conversation');
+        if (!hostState || !hostState.action) break;
+        episodeIndex += 1;
+        
+        const epDiv = document.createElement('div');
+        epDiv.className = 'timeline-event episode-card';
+        
+        const question = hostState.action.question || 'A new moment in this relationship...';
+        const scenarioTitle = `Episode ${episodeIndex}: ${truncateText(question, 40)}`;
+        
+        // Determine whose decision this is
+        let yourDecision = null;
+        let partnerDecision = null;
+        if (decision && decision.gender) {
+            if (isYourGender(decision.gender)) {
+                yourDecision = decision;
+            } else {
+                partnerDecision = decision;
+            }
         }
         
-        eventElement.innerHTML = `
-            <div class="event-title">${getEventTitle(event, index + 1)}</div>
-            <div class="event-content">${getEventContent(event)}</div>
-            <div class="event-time">Step ${index + 1}</div>
+        const scoreAfter = (nextState && nextState.cumulative_rate) || hostState.cumulative_rate || '-';
+        const scoreDesc = getCompatibilityDescription(parseInt(scoreAfter || '25', 10));
+        
+        epDiv.innerHTML = `
+            <div class="event-title">${scenarioTitle}</div>
+            <div class="event-content">
+                <div class="episode-scenario">
+                    <strong>🎬 Scenario:</strong> ${question}
+                </div>
+                <div class="episode-decisions">
+                    <div class="episode-decision you-decision">
+                        <strong>You (Your Agent):</strong>
+                        ${formatDecisionBlock(yourDecision)}
+                    </div>
+                    <div class="episode-decision partner-decision">
+                        <strong>Partner:</strong>
+                        ${formatDecisionBlock(partnerDecision)}
+                    </div>
+                </div>
+                <div class="episode-score">
+                    💕 Compatibility after this round: <span class="score-number">${scoreAfter}/50</span> · ${scoreDesc}
+                </div>
+            </div>
+            <div class="event-time">Step ${i + 1}</div>
         `;
         
-        timelineContainer.appendChild(eventElement);
-    });
-}
-
-// Get event title based on event data
-function getEventTitle(event, stepNumber) {
-    if (event.decision) {
-        return `💭 Decision Point ${stepNumber}`;
-    } else if (event.scenario) {
-        return `🎬 Scenario: ${event.scenario}`;
-    } else {
-        return `💬 Interaction ${stepNumber}`;
+        timelineContainer.appendChild(epDiv);
+        i += 3; // move to next episode group
     }
 }
 
-// Get event content
-function getEventContent(event) {
-    if (event.decision && event.rationale) {
-        return `<strong>Decision:</strong> ${event.decision}<br><em>Rationale:</em> ${event.rationale}`;
-    } else if (event.scenario) {
-        return event.scenario;
-    } else {
-        return JSON.stringify(event).substring(0, 200) + (JSON.stringify(event).length > 200 ? '...' : '');
+function truncateText(text, maxLen) {
+    if (!text) return '';
+    if (text.length <= maxLen) return text;
+    return text.substring(0, maxLen) + '...';
+}
+
+// naive helper to treat first avatar as "you"
+function isYourGender(gender) {
+    // In sandbox simulation we don't have explicit mapping, so we treat both equally.
+    // For episode view, just return true to render decision as "you" when available.
+    return true;
+}
+
+function formatDecisionBlock(decisionObj) {
+    if (!decisionObj || !decisionObj.decision) {
+        return '<span class="muted">(Partner acted first or no decision to show)</span>';
     }
+    const opt = decisionObj.decision.option || decisionObj.decision.Option || '';
+    const content = decisionObj.decision.content || decisionObj.decision.Content || '';
+    const rationale = decisionObj.rationale || '';
+    return `
+        <div><strong>Choice:</strong> ${opt || '—'} ${content || ''}</div>
+        <div class="episode-rationale"><strong>Inner thought:</strong> <em>${rationale || '(No details)'}</em></div>
+    `;
 }
 
 // Display AI insights
@@ -430,7 +571,7 @@ function displayInsights(result) {
         }
     ];
     
-    const insightsContainer = document.getElementById('insights-container');
+    const insightsContainer = document.getElementById('insights-container'); // May be null in new UI
     insightsContainer.innerHTML = '';
     
     insights.forEach(insight => {
@@ -444,6 +585,326 @@ function displayInsights(result) {
     });
 }
 
+// Extract key moments (first, conflict-like, last) for feedback
+function extractKeyMoments(simulationData) {
+    if (!simulationData || simulationData.length === 0) return [];
+    const moments = [];
+    
+    // Helper to create a moment object
+    function buildMoment(index, label) {
+        const hostState = simulationData[index];
+        const decision = simulationData[index + 1];
+        if (!hostState || !hostState.action) return null;
+        const question = hostState.action.question || '';
+        const dec = decision && decision.decision ? decision.decision : {};
+        return {
+            index,
+            label,
+            scenario: question,
+            option: dec.option || dec.Option || '',
+            content: dec.content || dec.Content || '',
+            rationale: (decision && decision.rationale) || ''
+        };
+    }
+    
+    // 1. first moment
+    const first = buildMoment(0, 'First Meeting');
+    if (first) moments.push(first);
+    
+    // 2. conflict-like moment (search question text)
+    const conflictKeywords = ['argue', 'conflict', 'disagree', 'tension', 'problem', 'issue', 'difficult'];
+    for (let i = 0; i < simulationData.length - 1; i += 3) {
+        const s = simulationData[i];
+        if (!s || !s.action || !s.action.question) continue;
+        const q = s.action.question.toLowerCase();
+        if (conflictKeywords.some(k => q.includes(k))) {
+            const conflict = buildMoment(i, 'Conflict Point');
+            if (conflict) moments.push(conflict);
+            break;
+        }
+    }
+    
+    // 3. last moment before end
+    for (let i = simulationData.length - 3; i >= 0; i -= 3) {
+        const last = buildMoment(i, 'Final Scene');
+        if (last) {
+            if (!moments.find(m => m.index === last.index)) {
+                moments.push(last);
+            }
+            break;
+        }
+    }
+    
+    // De-duplicate by index
+    const unique = [];
+    const seen = new Set();
+    for (const m of moments) {
+        if (!seen.has(m.index)) {
+            seen.add(m.index);
+            unique.push(m);
+        }
+    }
+    return unique;
+}
+
+// Render feedback panel with key moments
+function renderFeedbackPanel(simulationState) {
+    const feedbackSection = document.getElementById('feedback-section');
+    const container = document.getElementById('key-moments-container');
+    if (!feedbackSection || !container) return;
+    
+    // Always show feedback section when simulation completes
+    feedbackSection.style.display = 'block';
+    
+    const keyMoments = simulationState.keyMoments || [];
+    if (!keyMoments.length) {
+        container.innerHTML = '<p class="no-moments">No specific key moments detected in this simulation.</p>';
+    } else {
+        container.innerHTML = '';
+    }
+    
+    if (!keyMoments.length) return;
+    
+    container.innerHTML = '';
+    keyMoments.forEach((m, idx) => {
+        const card = document.createElement('div');
+        card.className = 'key-moment-card';
+        const momentId = `moment-${idx}`;
+        card.innerHTML = `
+            <div class="moment-header">
+                <span class="moment-tag">⭐ ${m.label}</span>
+            </div>
+            <div class="moment-body">
+                <div class="moment-scenario"><strong>Scenario:</strong> ${m.scenario}</div>
+                <div class="moment-decision">
+                    <strong>Your Agent's Action:</strong> ${m.option ? (m.option + ' · ') : ''}${m.content || '(No detailed action in this round)'}
+                </div>
+                <div class="moment-rationale">
+                    <strong>Inner Thought:</strong> <em>${m.rationale || '(No details)'}</em>
+                </div>
+            </div>
+            <div class="moment-feedback">
+                <div class="moment-question">
+                    Does this behavior feel like something YOU would do?
+                </div>
+                <div class="moment-options">
+                    <label><input type="radio" name="${momentId}-likeness" value="very_like"> Very much like me</label>
+                    <label><input type="radio" name="${momentId}-likeness" value="somewhat_like"> Somewhat like me</label>
+                    <label><input type="radio" name="${momentId}-likeness" value="not_like"> Not like me at all</label>
+                </div>
+                <div class="moment-not-like-extra" id="${momentId}-extra" style="display:none;">
+                    <div class="extra-label">If not like you, what would you actually do?</div>
+                    <div class="extra-options">
+                        <label><input type="checkbox" value="more_proactive"> Be more proactive</label>
+                        <label><input type="checkbox" value="more_conservative"> Be more cautious</label>
+                        <label><input type="checkbox" value="more_direct"> Be more direct</label>
+                        <label><input type="checkbox" value="avoid_conflict"> Avoid conflict</label>
+                    </div>
+                    <textarea class="extra-text" placeholder="Other (20 chars max)" maxlength="40"></textarea>
+                </div>
+            </div>
+        `;
+        container.appendChild(card);
+        
+        const radios = card.querySelectorAll(`input[name="${momentId}-likeness"]`);
+        const extraDiv = card.querySelector(`#${momentId}-extra`);
+        radios.forEach(r => {
+            r.addEventListener('change', () => {
+                if (r.value === 'not_like') {
+                    extraDiv.style.display = 'block';
+                } else {
+                    extraDiv.style.display = 'none';
+                }
+            });
+        });
+    });
+    
+    feedbackSection.style.display = 'block';
+}
+
+// Bind feedback submit button
+function bindFeedbackSubmit() {
+    const btn = document.getElementById('submit-feedback');
+    if (!btn) return;
+    btn.addEventListener('click', async () => {
+        if (!currentSimulation || !currentSimulation.simulation.length) {
+            showMessage('Please complete a simulation first before submitting feedback', 'warning');
+            return;
+        }
+        const payload = collectFeedbackPayload();
+        try {
+            const res = await fetch('/sandbox/feedback', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) {
+                showMessage('Submit failed, please try again', 'error');
+                return;
+            }
+            const data = await res.json();
+            if (data.status === 'ok') {
+                showMessage('Thank you for your feedback! 🎉 Your love story has been saved.', 'success');
+                // Optionally refresh trajectory if visible
+                if (document.getElementById('trajectory-section').style.display !== 'none') {
+                    loadTrajectory();
+                }
+            } else {
+                showMessage('Submit failed, please try again', 'error');
+            }
+        } catch (e) {
+            console.error(e);
+            showMessage('Network error, submit failed', 'error');
+        }
+    });
+}
+
+// Collect feedback payload
+function collectFeedbackPayload() {
+    const keyMoments = currentSimulation.keyMoments || [];
+    const momentFeedback = [];
+    keyMoments.forEach((m, idx) => {
+        const momentId = `moment-${idx}`;
+        const card = document.querySelector(`.key-moment-card:nth-child(${idx + 1})`);
+        if (!card) return;
+        const selected = card.querySelector(`input[name="${momentId}-likeness"]:checked`);
+        const likeness = selected ? selected.value : null;
+        const extraDiv = card.querySelector(`#${momentId}-extra`);
+        const extras = [];
+        if (extraDiv && extraDiv.style.display !== 'none') {
+            extraDiv.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
+                extras.push(cb.value);
+            });
+        }
+        const extraTextEl = extraDiv ? extraDiv.querySelector('.extra-text') : null;
+        const extraText = extraTextEl ? extraTextEl.value : '';
+        momentFeedback.push({
+            scenario: m.scenario,
+            option: m.option,
+            content: m.content,
+            rationale: m.rationale,
+            likeness,
+            deviation_tags: extras,
+            deviation_text: extraText
+        });
+    });
+    
+    const likenessScore = parseInt(document.getElementById('likeness-score').value, 10);
+    
+    // Collect survey responses
+    const engagement = document.querySelector('input[name="engagement"]:checked')?.value || '';
+    const scenarioFeel = Array.from(document.querySelectorAll('input[name="scenario-feel"]:checked')).map(el => el.value);
+    const useCase = Array.from(document.querySelectorAll('input[name="use-case"]:checked')).map(el => el.value);
+    const improvements = Array.from(document.querySelectorAll('input[name="improvements"]:checked')).map(el => el.value);
+    
+    return {
+        cumulative_rate: currentSimulation.cumulative_rate,
+        simulation: currentSimulation.simulation,  // Full simulation for replay
+        moment_feedback: momentFeedback,
+        global_feedback: {
+            likeness_score: likenessScore,
+            engagement: engagement,
+            scenario_feel: scenarioFeel,
+            use_case: useCase,
+            improvements: improvements
+        },
+        // Persona snapshots for trajectory
+        persona: avatars.avatar1 ? {
+            nickname: avatars.avatar1.nickname,
+            age: avatars.avatar1.age,
+            gender: avatars.avatar1.gender,
+            occupation: avatars.avatar1.occupation
+        } : null,
+        partner_persona: avatars.avatar2 ? {
+            nickname: avatars.avatar2.nickname,
+            age: avatars.avatar2.age,
+            gender: avatars.avatar2.gender,
+            occupation: avatars.avatar2.occupation
+        } : null,
+        simulation_length: (currentSimulation.simulation || []).length
+    };
+}
+
+// Render a lightweight observer-style comment
+function renderObserverComment(simulationState) {
+    // Show the observer section
+    const observerSection = document.getElementById('observer-section');
+    if (observerSection) observerSection.style.display = 'block';
+    
+    const card = document.getElementById('observer-card');
+    const p = document.getElementById('observer-comment');
+    const statsDiv = document.getElementById('observer-stats');
+    if (!card || !p) return;
+    
+    const score = simulationState.cumulative_rate || 25;
+    const desc = getCompatibilityDescription(score);
+    
+    // Rough trajectory analysis
+    const sims = simulationState.simulation || [];
+    let ups = 0;
+    let downs = 0;
+    let turningPoint = null;
+    let maxChange = 0;
+    
+    for (let i = 3; i < sims.length; i += 3) {
+        const prev = sims[i - 3] && sims[i - 3].cumulative_rate;
+        const cur = sims[i] && sims[i].cumulative_rate;
+        if (!prev || !cur) continue;
+        const change = parseInt(cur) - parseInt(prev);
+        if (change > 0) ups++;
+        else if (change < 0) downs++;
+        if (Math.abs(change) > maxChange) {
+            maxChange = Math.abs(change);
+            turningPoint = { index: i, change: change, question: sims[i - 3]?.action?.question || '' };
+        }
+    }
+    
+    // Determine relationship dynamic
+    let dynamic = '';
+    if (ups > downs * 2) dynamic = '🌸 Blossoming Romance';
+    else if (downs > ups * 2) dynamic = '🌊 Rocky Waters';
+    else if (ups > downs) dynamic = '☀️ Warming Up';
+    else if (downs > ups) dynamic = '🌧️ Cooling Down';
+    else dynamic = '⚖️ Balanced Exploration';
+    
+    // Determine agent style
+    let style = '';
+    if (score >= 35 && ups > downs) style = '💕 Romantic & Open';
+    else if (score >= 25 && ups === downs) style = '🤔 Cautious & Measured';
+    else if (downs > ups) style = '🛡️ Guarded & Protective';
+    else style = '🌱 Curious & Tentative';
+    
+    // Generate comment
+    let mood = '';
+    if (score >= 40) mood = 'This felt like a "made for each other" finale! 💕';
+    else if (score >= 30) mood = 'Good chemistry with room to grow.';
+    else if (score >= 20) mood = 'A cautious dance — neither fully committing.';
+    else mood = 'This pairing faced significant challenges.';
+    
+    p.textContent = `Final Score: ${score}/50 (${desc}). ${mood}`;
+    
+    // Populate stats
+    if (statsDiv) {
+        statsDiv.style.display = 'block';
+        const statDynamic = document.getElementById('stat-dynamic');
+        const statStyle = document.getElementById('stat-style');
+        const statTurning = document.getElementById('stat-turning');
+        
+        if (statDynamic) statDynamic.textContent = dynamic;
+        if (statStyle) statStyle.textContent = style;
+        
+        if (turningPoint && turningPoint.question) {
+            const turnText = turningPoint.change > 0 ? '📈 Positive shift' : '📉 Tension moment';
+            if (statTurning) statTurning.textContent = turnText;
+        } else {
+            if (statTurning) statTurning.textContent = '— Steady progression';
+        }
+    }
+}
+
 // Get compatibility description
 function getCompatibilityDescription(score) {
     if (score >= 45) return 'Excellent Match! 💕';
@@ -451,6 +912,21 @@ function getCompatibilityDescription(score) {
     if (score >= 25) return 'Good Potential 😊';
     if (score >= 15) return 'Some Challenges 🤔';
     return 'Low Compatibility 💔';
+}
+
+// Toggle collapsible sections
+function toggleSection(sectionId) {
+    const section = document.getElementById(sectionId);
+    const toggleId = sectionId.replace('-section', '-toggle');
+    const toggle = document.getElementById(toggleId);
+    
+    if (section.classList.contains('collapsed')) {
+        section.classList.remove('collapsed');
+        if (toggle) toggle.textContent = '▼';
+    } else {
+        section.classList.add('collapsed');
+        if (toggle) toggle.textContent = '▶';
+    }
 }
 
 // Show message function
@@ -547,4 +1023,312 @@ function addLiveDecision(avatarName, gender, decision, rationale) {
     `;
     liveContainer.appendChild(decisionDiv);
     liveContainer.scrollTop = liveContainer.scrollHeight;
+}
+
+// ========== Love Trajectory Functions ==========
+
+// Show trajectory section, hide creation section
+function showTrajectorySection() {
+    // Reset simulation state completely
+    simulationRunning = false;
+    
+    // Reset UI elements
+    const startButton = document.getElementById('start-simulation');
+    if (startButton) {
+        startButton.disabled = false;
+        startButton.textContent = '🚀 Start AI Love Simulation';
+        startButton.classList.remove('loading');
+    }
+    
+    const statusElement = document.getElementById('simulation-status');
+    if (statusElement) {
+        statusElement.innerHTML = '<span class="waiting">⏳ Create both avatars to begin simulation</span>';
+    }
+    
+    // Hide other sections (with null checks)
+    const creationSec = document.getElementById('creation-section');
+    const simulationSec = document.getElementById('simulation-section');
+    const resultsSec = document.getElementById('results-section');
+    const trajectorySec = document.getElementById('trajectory-section');
+    
+    if (creationSec) creationSec.style.display = 'none';
+    if (simulationSec) simulationSec.style.display = 'none';
+    if (resultsSec) resultsSec.style.display = 'none';
+    if (trajectorySec) trajectorySec.style.display = 'block';
+    
+    loadTrajectory();
+}
+
+// Show creation section, hide trajectory
+function showCreationSection() {
+    const trajectorySec = document.getElementById('trajectory-section');
+    const creationSec = document.getElementById('creation-section');
+    const simulationSec = document.getElementById('simulation-section');
+    
+    if (trajectorySec) trajectorySec.style.display = 'none';
+    if (creationSec) creationSec.style.display = 'block';
+    if (simulationSec) simulationSec.style.display = 'block';
+}
+
+// Load and display trajectory history
+async function loadTrajectory() {
+    const container = document.getElementById('trajectory-list');
+    if (!container) return;
+    
+    container.innerHTML = '<p class="loading-text">Loading your love trajectory...</p>';
+    
+    try {
+        const res = await fetch('/sandbox/trajectory', {
+            method: 'GET',
+            credentials: 'include'
+        });
+        
+        if (!res.ok) {
+            container.innerHTML = '<p class="no-data">Failed to load trajectory. Please try again.</p>';
+            return;
+        }
+        
+        const data = await res.json();
+        if (data.status !== 'ok' || !data.simulations || data.simulations.length === 0) {
+            container.innerHTML = `
+                <div class="no-data-card">
+                    <p>📭 No love stories yet!</p>
+                    <p>Create your first simulation to start tracking your agent's dating journey.</p>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = '';
+        
+        // Show summary stats
+        const avgScore = data.simulations.reduce((sum, s) => sum + (s.cumulative_rate || 25), 0) / data.simulations.length;
+        const summaryDiv = document.createElement('div');
+        summaryDiv.className = 'trajectory-summary';
+        summaryDiv.innerHTML = `
+            <div class="summary-stats">
+                <div class="stat-item">
+                    <div class="stat-value">${data.simulations.length}</div>
+                    <div class="stat-label">Total Stories</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${Math.round(avgScore)}</div>
+                    <div class="stat-label">Avg Compatibility</div>
+                </div>
+            </div>
+        `;
+        container.appendChild(summaryDiv);
+        
+        // Show each simulation
+        data.simulations.forEach((sim, idx) => {
+            const card = document.createElement('div');
+            card.className = 'trajectory-card';
+            const date = new Date(sim.created_at).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            const partner = sim.avatar2 || sim.partner_persona || {};
+            const score = sim.cumulative_rate || 25;
+            const scoreDesc = getCompatibilityDescription(score);
+            
+            card.innerHTML = `
+                <div class="trajectory-card-header">
+                    <div class="trajectory-partner">
+                        <strong>${partner.nickname || 'Unknown'}</strong>
+                        <span class="partner-details">${partner.age || ''}${partner.age && partner.occupation ? ' · ' : ''}${partner.occupation || ''}</span>
+                    </div>
+                    <div class="trajectory-score">
+                        <span class="score-badge">${score}/50</span>
+                        <span class="score-desc">${scoreDesc}</span>
+                    </div>
+                </div>
+                <div class="trajectory-card-body">
+                    <div class="trajectory-meta">
+                        <span>📅 ${date}</span>
+                        ${sim.feedback && sim.feedback.likeness_score ? 
+                            `<span>👤 Likeness: ${sim.feedback.likeness_score}/10</span>` : ''}
+                    </div>
+                </div>
+                <div class="trajectory-card-actions">
+                    <button class="btn-sample" onclick="replaySimulation('${sim._id}')">
+                        ▶️ Replay Story
+                    </button>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    } catch (e) {
+        console.error('Load trajectory error:', e);
+        container.innerHTML = '<p class="no-data">Error loading trajectory. Please refresh the page.</p>';
+    }
+}
+
+// Replay a past simulation
+async function replaySimulation(simulationId) {
+    try {
+        const res = await fetch(`/sandbox/simulation/${simulationId}`, {
+            method: 'GET',
+            credentials: 'include'
+        });
+        
+        if (!res.ok) {
+            showMessage('Failed to load simulation', 'error');
+            return;
+        }
+        
+        const data = await res.json();
+        if (data.status !== 'ok') {
+            showMessage('Simulation not found', 'error');
+            return;
+        }
+        
+        const sim = data.simulation;
+        
+        // Switch to results view
+        showCreationSection();
+        const resultsSecReplay = document.getElementById('results-section');
+        if (resultsSecReplay) {
+            resultsSecReplay.style.display = 'block';
+            resultsSecReplay.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Display the simulation
+        displaySimulationResults({
+            simulation: sim.simulation || [],
+            cumulative_rate: sim.cumulative_rate || 25
+        });
+        
+        // Show observer comment if we have the data
+        if (sim.simulation) {
+            const simState = {
+                simulation: sim.simulation,
+                cumulative_rate: sim.cumulative_rate || 25
+            };
+            renderObserverComment(simState);
+        }
+        
+        showMessage('Simulation loaded! Scroll down to see the full story.', 'success');
+    } catch (e) {
+        console.error('Replay error:', e);
+        showMessage('Error loading simulation', 'error');
+    }
+}
+// ========== NEW: Game Stage Rendering ==========
+
+function initGameStage() {
+    const gameContent = document.getElementById('game-content');
+    if (gameContent) {
+        gameContent.innerHTML = ''; // Clear previous game
+        // Add initial system message
+        const initMsg = document.createElement('div');
+        initMsg.className = 'system-event';
+        initMsg.innerHTML = `
+            <span class="system-badge">SYSTEM</span>
+            <div class="system-text">Initialization complete. Simulation starting...</div>
+        `;
+        gameContent.appendChild(initMsg);
+    }
+    
+    // Set avatars
+    if (avatars.avatar1 && avatars.avatar2) {
+        const charRight = document.getElementById('char-name-right');
+        const charLeft = document.getElementById('char-name-left');
+        const avatarRight = document.getElementById('char-avatar-right');
+        const avatarLeft = document.getElementById('char-avatar-left');
+        
+        if (charRight) charRight.textContent = avatars.avatar1?.nickname || 'You';
+        if (charLeft) charLeft.textContent = avatars.avatar2?.nickname || 'Partner';
+        
+        // Set avatar initials/emoji based on gender
+        const getAvatarEmoji = (gender) => {
+            if (gender === 'female') return '👩';
+            if (gender === 'male') return '👨';
+            return '🧑';
+        };
+        
+        if (avatarRight) avatarRight.textContent = getAvatarEmoji(avatars.avatar1?.gender);
+        if (avatarLeft) avatarLeft.textContent = getAvatarEmoji(avatars.avatar2?.gender);
+    }
+}
+
+function addToGameChat(element) {
+    const gameContent = document.getElementById('game-content');
+    if (gameContent) {
+        gameContent.appendChild(element);
+        gameContent.scrollTop = gameContent.scrollHeight;
+    }
+}
+
+function addGameScenario(scenario) {
+    const div = document.createElement('div');
+    div.className = 'system-event';
+    div.innerHTML = `
+        <span class="system-badge">SCENARIO</span>
+        <div class="system-text">${scenario}</div>
+    `;
+    addToGameChat(div);
+    
+    // Show typing indicator while AI generates response
+    showTypingIndicator();
+}
+
+function showTypingIndicator() {
+    hideTypingIndicator(); // Remove existing if any
+    const div = document.createElement('div');
+    div.id = 'typing-indicator';
+    div.className = 'typing-indicator';
+    div.innerHTML = `
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+        <span class="typing-text">AI is thinking...</span>
+    `;
+    addToGameChat(div);
+}
+
+function hideTypingIndicator() {
+    const existing = document.getElementById('typing-indicator');
+    if (existing) existing.remove();
+}
+
+function addGameMessage(avatarName, gender, decision, rationale, isUserAgent) {
+    hideTypingIndicator(); // Remove typing indicator when message arrives
+    const div = document.createElement('div');
+    div.className = `chat-message ${isUserAgent ? 'message-right' : 'message-left'}`;
+    
+    const actionContent = decision.Content || decision.content || '';
+    const option = decision.Option || decision.option || '';
+    
+    div.innerHTML = `
+        <div class="bubble-content">
+            ${option ? `<span class="bubble-action">Option ${option} selected</span>` : ''}
+            ${actionContent}
+        </div>
+        ${rationale ? `<div class="thought-bubble">💭 ${rationale}</div>` : ''}
+    `;
+    addToGameChat(div);
+}
+
+function updateGameScore(score) {
+    const gameScoreVal = document.getElementById('game-score-val');
+    const gameScoreEmoji = document.getElementById('game-score-emoji');
+    if (gameScoreVal) gameScoreVal.textContent = score;
+    if (gameScoreEmoji) gameScoreEmoji.textContent = getScoreEmoji(score);
+    
+    // Add small notification in chat
+    const div = document.createElement('div');
+    div.className = 'score-update-pill';
+    div.innerHTML = `💕 Compatibility updated to ${score}/50`;
+    addToGameChat(div);
+}
+
+function getScoreEmoji(score) {
+    if (score >= 45) return '💖';
+    if (score >= 35) return '🥰';
+    if (score >= 25) return '😊';
+    if (score >= 15) return '😐';
+    return '💔';
 }

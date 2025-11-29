@@ -229,15 +229,22 @@ experiments/
 - **`.env` file**: Secure API key storage
 - **`.gitignore` updates**: Prevent sensitive data leaks
 
-#### Sandbox Feature
+#### Sandbox Feature (NeurIPS MVP - January 2025)
+- **"Your Own Love Show" Concept**: Sandbox rebranded as interactive dating show simulator
+- **"Love First, Know Later" Integration**: Core research concept prominently featured
 - **Real-time Streaming**: WebSocket-based progress updates
 - **Visual Display**: Color-coded decision cards and scenario blocks
-- **Session-based Avatars**: Temporary avatar creation without database
+- **Episode-style Timeline**: "Love Story Replay" with episode cards
+- **User Feedback System**: Key moments feedback + global ratings
+- **Lightweight Love Observer**: Rule-based commentary (Beta)
+- **Profile Quick-Fill**: One-click avatar creation from user profile
+- **All English Interface**: Complete translation for international users
 
-#### Research Integration
-- **Stage 2 Evaluation**: Two-stage evaluation system (immediate + reflection)
-- **Baseline Models**: Traditional ML comparison
-- **Comprehensive Comparison**: LLM vs ML analysis framework
+#### MVP Improvements (January 2025)
+- **Persistent Simulation History**: Save sandbox simulations to database
+- **Love Trajectory View**: Track all past simulations and partners
+- **Improved UX**: Clear, navigable interface with backtracking support
+- **Error Handling**: Better JSON parsing and API key validation
 
 ---
 
@@ -482,4 +489,54 @@ python app.py
 **Last Updated**: 2025-01-XX  
 **Maintainer**: Development Team  
 **Status**: Active Development
+
+
+---
+
+## 📅 2025/11/28-29 - NeurIPS MVP Sprint
+
+### MVP Features Implemented
+
+#### Core Simulation
+- ✅ Real-time AI dating simulation with WebSocket streaming
+- ✅ Episode-style timeline display ("Love Story Replay")
+- ✅ Compatibility score with live updates
+- ✅ Error handling and graceful fallbacks
+
+#### User Feedback System (v2)
+- ✅ **Key Moments Feedback**: Users rate if agent behavior matches their personality
+- ✅ **Structured Survey**: Replaced open-text with checkbox/radio options
+  - Engagement level
+  - Scenario perception (realistic, dramatic, creative)
+  - Use case intentions
+  - Improvement suggestions (predefined options)
+- ✅ Overall likeness score (0-10 slider)
+
+#### Love Observer (Enhanced)
+- ✅ Relationship dynamic analysis (Blossoming/Rocky/Balanced)
+- ✅ Agent style classification (Romantic/Cautious/Guarded)
+- ✅ Key turning point detection
+- ✅ Score trajectory visualization
+
+#### Love Trajectory
+- ✅ Auto-save simulations to database
+- ✅ View all past simulations with partner info
+- ✅ Replay past simulations
+- ✅ Stats summary (total stories, avg compatibility)
+
+#### UX Improvements
+- ✅ Collapsible sections for Live Updates and Timeline
+- ✅ Large score display always visible
+- ✅ Smooth scrolling within sections
+- ✅ Proper state management when switching views
+
+### Known Issues & Future Work
+- ⚠️ Multi-avatar drag-and-drop (deferred to v2)
+- ⚠️ Agent interaction network visualization (deferred)
+- ⚠️ LLM-based Love Observer analysis (currently rule-based)
+
+### Technical Notes
+- All text in English for international audience
+- Session-based WebSocket with proper error recovery
+- Database collections: `sandbox-simulations`, `sandbox-feedback`
 

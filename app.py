@@ -385,6 +385,84 @@ def sandbox_matching():
         import traceback
         traceback.print_exc()
         return {"status":"error","message":str(e)}, 500
+
+@app.route('/sandbox/feedback', methods=['POST'])
+def sandbox_feedback():
+    """
+    Collect user feedback on simulations.
+    Note: Simulation data is auto-saved when simulation completes.
+    This endpoint only saves the feedback for research analysis.
+    """
+    if 'logged_user' not in session:
+        return {"status":"fail","message":"Not logged in"}, 401
+    try:
+        data = request.get_json() or {}
+        db = dbClient()
+        user_id = session['logged_user'].get('_id')
+        
+        # Save feedback for analysis (simulation is auto-saved on completion)
+        feedback_doc = {
+            "user_id": user_id,
+            "created_at": str(ObjectId()),
+            "cumulative_rate": data.get('cumulative_rate'),
+            "global_feedback": data.get('global_feedback', {}),
+            "moment_feedback": data.get('moment_feedback', []),
+            "persona": data.get('persona'),
+            "partner_persona": data.get('partner_persona')
+        }
+        db.getCollection("sandbox-feedback").insert_one(feedback_doc)
+        
+        return {"status": "ok"}
+    except Exception as e:
+        print(f"Sandbox feedback error: {e}")
+        import traceback
+        traceback.print_exc()
+        return {"status": "error", "message": "Failed to save feedback"}, 500
+
+@app.route('/sandbox/trajectory', methods=['GET'])
+def get_trajectory():
+    """Get all past simulations for the logged-in user"""
+    if 'logged_user' not in session:
+        return {"status":"fail","message":"Not logged in"}, 401
+    try:
+        db = dbClient()
+        user_id = session['logged_user'].get('_id')
+        simulations = list(db.getCollection("sandbox-simulations").find(
+            {"user_id": user_id},
+            {"simulation": 0}  # Exclude full simulation data for list view
+        ).sort("created_at", -1).limit(50))
+        
+        # Convert ObjectId to string
+        for sim in simulations:
+            sim['_id'] = str(sim['_id'])
+        
+        return {"status": "ok", "simulations": simulations}
+    except Exception as e:
+        print(f"Get trajectory error: {e}")
+        return {"status": "error", "message": str(e)}, 500
+
+@app.route('/sandbox/simulation/<simulation_id>', methods=['GET'])
+def get_simulation_detail(simulation_id):
+    """Get full details of a specific simulation for replay"""
+    if 'logged_user' not in session:
+        return {"status":"fail","message":"Not logged in"}, 401
+    try:
+        from bson.objectid import ObjectId
+        db = dbClient()
+        user_id = session['logged_user'].get('_id')
+        sim = db.getCollection("sandbox-simulations").find_one({
+            "_id": ObjectId(simulation_id),
+            "user_id": user_id
+        })
+        
+        if not sim:
+            return {"status": "error", "message": "Simulation not found"}, 404
+        
+        sim['_id'] = str(sim['_id'])
+        return {"status": "ok", "simulation": sim}
+    except Exception as e:
+        print(f"Get simulation detail error: {e}")
+        return {"status": "error", "message": str(e)}, 500
 @app.route("/login",methods = ["POST"])
 def login():
     data = request.get_json()
