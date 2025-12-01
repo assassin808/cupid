@@ -4,7 +4,8 @@ from datetime import datetime
 from Database import dbClient
 import json
 
-socketio = SocketIO()
+# Use simple threading mode to avoid eventlet/gevent compatibility issues on modern Python (e.g. 3.13)
+socketio = SocketIO(async_mode="threading")
 
 # 存储在线用户
 online_users = {}

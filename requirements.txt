@@ -5,4 +5,3 @@ flask-session==0.8.0
 redis==5.0.1
 pymongo[srv]==3.12
 python-dotenv==1.0.1
-eventlet==0.35.2
