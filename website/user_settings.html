@@ -3,588 +3,213 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Settings</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="static/user_settings.css">
+    <title>Settings | Cupid</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="static/sandbox.css?v=1764549900">
 </head>
 <body>
-    <!-- Mobile Top Banner -->
-    <div class="mobile-banner d-flex align-items-center px-3 py-2 d-md-none">
-        <span class="brand-title flex-grow-1" style="font-size:1.2rem;letter-spacing:1px;">cupid.ai</span>
-        <button class="menu-toggle-btn btn p-0" onclick="toggleSidebarMenu()">
-            <i class="fas fa-bars fa-lg"></i>
-        </button>
+<nav class="sidebar">
+    <div class="brand-box">
+        <a href="/" class="app-logo">Cupid</a>
+        <span class="slogan">Love First,<br>Know Later</span>
+        <span class="beta-badge">BETA</span>
     </div>
-    <div class="settings-layout d-flex">
-        <!-- Sidebar (desktop & mobile drawer) -->
-        <aside class="sidebar d-flex flex-column align-items-center py-4" id="sidebarMenu">
-            <div class="sidebar-logo mb-4 d-none d-md-block">
-                <span class="brand-title" style="font-size:1.5rem;letter-spacing:1px;">cupid.ai</span>
-            </div>
-            <nav class="sidebar-menu flex-grow-1 w-100">
-                <ul class="nav flex-column w-100">
-                    <li class="nav-item mb-3"><a class="nav-link active" href="#"><i class="fas fa-user me-2"></i>Profile</a></li>
-                    <li class="nav-item mb-3"><a class="nav-link" href="#"><i class="fas fa-heart me-2"></i>Preference</a></li>
-                    <li class="nav-item mb-3"><a class="nav-link" href="#"><i class="fas fa-bell me-2"></i>Notifications</a></li>
-                    <li class="nav-item mb-3"><a class="nav-link" href="#"><i class="fas fa-shield-alt me-2"></i>Security</a></li>
-                </ul>
-            </nav>
-            <div class="sidebar-avatar mt-auto pt-4">
-                <img src="" id = "avatar" alt="Avatar" class="rounded-circle" style="width:56px;height:56px;object-fit:cover;border:2px solid #eee;">
-                <a class="nav-link text-danger mt-3 d-block text-center" href="#" id = "logoutBtn" style="font-weight:500;"><i class="fas fa-sign-out-alt me-2"></i>Logout</a>
-            </div>
-        </aside>
-        <!-- Main Content -->
-        <main class="settings-main flex-grow-1 px-4 py-5">
-            <div class="settings-box shadow-lg p-4 bg-white rounded-4">
-                <button class="btn btn-outline-secondary back-btn mb-3" onclick="window.location.href='/'">
-                    <i class="fas fa-arrow-left me-2"></i>Back to Home
-                </button>
-                <div class="text-center mb-4">
-                    <h2 class="brand-title mb-2">User Settings</h2>
-                    <div class="text-muted">View and edit your information</div>
-                </div>
-                <!-- Profile Tab Content -->
-                <div id="profileTab" class="tab-content">
-                    <form id="settingsForm">
-                        <div class="mb-4 text-center">
-                            <div class="avatar-container position-relative d-inline-block" onclick="document.getElementById('avatarInput').click();">
-                                <img id="avatarPreview" src="" alt="Avatar" class="rounded-circle" style="width: 120px; height: 120px; object-fit: cover;">
-                                <div class="avatar-overlay">
-                                    <i class="fas fa-camera"></i>
-                                </div>
-                            </div>
-                            <div class="mt-3">
-                                <input type="file" id="avatarInput" accept="image/*" style="display:none;">
-                                <small class="text-muted">Click to change avatar</small>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="nickname" class="form-label">
-                                <i class="fas fa-user me-2"></i>Nickname
-                            </label>
-                            <input type="text" class="form-control" id="nickname" placeholder="Enter your nickname">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">
-                                <i class="fas fa-venus-mars me-2"></i>Gender
-                            </label>
-                            <div class="d-flex gap-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="gender" id="genderMale" value="male">
-                                    <label class="form-check-label" for="genderMale">Male</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="gender" id="genderFemale" value="female">
-                                    <label class="form-check-label" for="genderFemale">Female</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="gender" id="genderOther" value="other">
-                                    <label class="form-check-label" for="genderOther">Other</label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="hobbies" class="form-label">
-                                <i class="fas fa-heart me-2"></i>Hobbies
-                            </label>
-                            <input type="text" class="form-control" id="hobbies" placeholder="e.g. Reading, Music, Sports">
-                        </div>
-                        <div class="mb-4">
-                            <label for="birthday" class="form-label">
-                                <i class="fas fa-birthday-cake me-2"></i>Birthday
-                            </label>
-                            <input type="date" class="form-control" id="birthday">
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="fas fa-save me-2"></i>Save Changes
-                        </button>
-                    </form>
-                </div>
-
-                <!-- Account Tab Content -->
-                <div id="accountTab" class="tab-content" style="display: none;">
-                    <div class="text-center mb-4">
-                        <div class="progress mb-3" style="height: 8px;">
-                            <div id="progressBar" class="progress-bar bg-pink" role="progressbar" style="width: 33%; background: linear-gradient(90deg, #ffb6c1, #ffc0cb);" aria-valuenow="33" aria-valuemin="0" aria-valuemax="100"></div>
-                        </div>
-                        <div class="text-muted">Complete your profile information</div>
-                    </div>
-                    <form id="profileForm">
-                        <div id="step1" class="step-fade active">
-                            <div class="mb-3">
-                                <label for="loveView" class="form-label">What is your view on love?</label>
-                                <select class="form-select" id="loveView">
-                                    <option value="" selected disabled>Select your view</option>
-                                    <option value="romantic">Romantic</option>
-                                    <option value="realistic">Realistic</option>
-                                    <option value="adventurous">Adventurous</option>
-                                    <option value="cautious">Cautious</option>
-                                    <option value="other">Other</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="qualities" class="form-label">What qualities do you value most in a partner?</label>
-                                <input type="text" class="form-control" id="qualities" placeholder="e.g. Honesty, Humor, Ambition">
-                            </div>
-                            <div class="mb-3">
-                                <label for="idealDate" class="form-label">Describe your ideal date</label>
-                                <textarea class="form-control" id="idealDate" rows="2" placeholder="e.g. A walk on the beach, candlelight dinner..."></textarea>
-                            </div>
-                            <div class="mb-3">
-                                <label for="relationshipType" class="form-label">Are you looking for a serious relationship or just fun?</label>
-                                <select class="form-select" id="relationshipType">
-                                    <option value="" selected disabled>Select one</option>
-                                    <option value="serious">Serious relationship</option>
-                                    <option value="fun">Just fun</option>
-                                    <option value="notSure">Not sure</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="dealbreakers" class="form-label">What are your dealbreakers?</label>
-                                <input type="text" class="form-control" id="dealbreakers" placeholder="e.g. Smoking, Dishonesty, ...">
-                            </div>
-                        </div>
-                        <div id="step2" class="step-fade" style="display: none;">
-                            <div class="mb-3">
-                                <label for="favDateActivity" class="form-label">What is your favorite date activity?</label>
-                                <input type="text" class="form-control" id="favDateActivity" placeholder="e.g. Movie, Hiking, Cooking together">
-                            </div>
-                            <div class="mb-3">
-                                <label for="longDistance" class="form-label">How do you feel about long-distance relationships?</label>
-                                <select class="form-select" id="longDistance">
-                                    <option value="" selected disabled>Select one</option>
-                                    <option value="ok">I'm open to it</option>
-                                    <option value="notOk">I prefer not</option>
-                                    <option value="depends">It depends</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="pets" class="form-label">Do you mind if your partner has pets?</label>
-                                <select class="form-select" id="pets">
-                                    <option value="" selected disabled>Select one</option>
-                                    <option value="love">I love pets</option>
-                                    <option value="ok">I don't mind</option>
-                                    <option value="notOk">I prefer not</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="datingFreq" class="form-label">What is your ideal dating frequency?</label>
-                                <select class="form-select" id="datingFreq">
-                                    <option value="" selected disabled>Select one</option>
-                                    <option value="daily">Every day</option>
-                                    <option value="weekly">A few times a week</option>
-                                    <option value="monthly">A few times a month</option>
-                                    <option value="rarely">Rarely</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div id="buttonRow" class="d-flex gap-2 mb-2 mt-4">
-                            <button type="button" id="nextStepBtn1" class="btn btn-primary w-100">Next Step</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </main>
+    <div class="nav-menu">
+        <a href="/home" class="nav-item ">
+            <span class="nav-icon"></span> Home
+        </a>
+        <a href="/discovery" class="nav-item ">
+            <span class="nav-icon"></span> Discovery
+        </a>
+        <a href="/sandbox" class="nav-item ">
+            <span class="nav-icon"></span> Sandbox
+        </a>
     </div>
-    <script>
-    // 移动端菜单切换
-    function toggleSidebarMenu() {
-        var sidebar = document.getElementById('sidebarMenu');
-        sidebar.classList.toggle('show-mobile');
-    }
-    // 返回首页
-    function goBack() {
-        window.location.href = '/';
-    }
+    <div class="sidebar-footer">
+        <a href="/user_settings" class="nav-item active">
+            <span class="nav-icon"></span> Settings
+        </a>
+    </div>
+</nav>
 
-    // Avatar preview functionality
-    document.getElementById('avatarInput').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            // Check file size (max 5MB)
-            if (file.size > 5 * 1024 * 1024) {
-                alert('File size should be less than 5MB');
-                this.value = '';
-                return;
-            }
 
-            // Check file type
-            if (!file.type.startsWith('image/')) {
-                alert('Please select an image file');
-                this.value = '';
-                return;
-            }
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const avatarPreview = document.getElementById('avatarPreview');
-                avatarPreview.style.opacity = '0';
-                setTimeout(() => {
-                    avatarPreview.src = e.target.result;
-                    avatarPreview.style.opacity = '1';
-                }, 200);
-            };
-            reader.readAsDataURL(file);
-        }
-    });
 
-    // Handle settings form submission (Profile tab)
-    document.getElementById('settingsForm').onsubmit = async function(e) {
-        e.preventDefault();
-        const form = e.target;
+<div class="settings-container">
+    <header class="settings-header">
+        <h1>Your Profile</h1>
+        <p>Manage your persona and preferences</p>
+    </header>
+
+    <form id="settings-form" class="glass-panel settings-form" enctype="multipart/form-data">
         
-        // Get submit button and show loading state
-        const submitBtn = form.querySelector('button[type="submit"]');
-        const originalBtnText = submitBtn.innerHTML;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
-        submitBtn.disabled = true;
-        
+        <!-- Avatar Section -->
+        <div class="settings-section center-text">
+            <div class="current-avatar" id="avatar-preview">
+                <img id="avatar-img" src="" alt="Avatar" style="width:120px;height:120px;border-radius:50%;object-fit:cover;border:4px solid white;box-shadow:0 5px 15px rgba(0,0,0,0.1);">
+            </div>
+            <label for="avatar-upload" class="btn-sample" style="margin-top:15px;cursor:pointer;display:inline-block;">
+                <i class="fas fa-camera"></i> Upload Photo
+            </label>
+            <input type="file" id="avatar-upload" name="avatar" accept="image/*" style="display:none;" onchange="previewAvatar(this)">
+        </div>
+
+        <!-- Info Section -->
+        <div class="settings-section">
+            <h3>Basic Info</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Nickname</label>
+                    <input type="text" id="nickname" name="nickname" placeholder="Your name" required>
+                </div>
+                <div class="form-group">
+                    <label>Age</label>
+                    <input type="number" id="age" name="age" placeholder="25" min="18" max="100" required>
+                </div>
+                <div class="form-group">
+                    <label>Gender</label>
+                    <select id="gender" name="gender" required>
+                        <option value="female">Female</option>
+                        <option value="male">Male</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Occupation</label>
+                    <input type="text" id="occupation" name="occupation" placeholder="e.g. Artist, Engineer">
+                </div>
+            </div>
+        </div>
+
+        <!-- Bio Section -->
+        <div class="settings-section">
+            <h3>Personality & Bio</h3>
+            <div class="form-group">
+                <label>About You</label>
+                <textarea id="bio" name="bio" rows="4" placeholder="Describe your personality, hobbies, and what you're looking for..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Interests</label>
+                <input type="text" id="interests" name="interests" placeholder="Jazz, Coding, Hiking...">
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+            <button type="submit" class="btn-create">Save Changes</button>
+            <a href="/logout" class="btn-sample" style="color: #e53e3e; border-color: #e53e3e;">Log Out</a>
+        </div>
+
+    </form>
+</div>
+
+<style>
+    .settings-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 40px;
+    }
+    .settings-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    .settings-header h1 {
+        font-size: 2.5rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .settings-form.glass-panel {
+        background: rgba(255, 255, 255, 0.6) !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.8) !important;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.05) !important;
+        border-radius: 30px;
+        padding: 40px;
+    }
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+    .settings-section {
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    .settings-section:last-child {
+        border-bottom: none;
+    }
+    .center-text { text-align: center; }
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 30px;
+    }
+</style>
+
+<script>
+    // Load current user info
+    document.addEventListener('DOMContentLoaded', async () => {
         try {
-            // Collect form data from Profile tab
-            const formData = new FormData();
-            formData.append('nickname', form.nickname.value);
-            formData.append('birthday', form.birthday.value);
-            formData.append('hobbies', form.hobbies.value);
-            
-            // Handle gender radio buttons
-            const genderMale = document.getElementById('genderMale')?.checked;
-            const genderFemale = document.getElementById('genderFemale')?.checked;
-            const genderOther = document.getElementById('genderOther')?.checked;
-            let gender = '';
-            if (genderMale) gender = 'male';
-            else if (genderFemale) gender = 'female';
-            else if (genderOther) gender = 'other';
-            if (gender) formData.append('gender', gender);
-            
-            // Handle avatar
-            const avatarInput = document.getElementById('avatarInput');
-            if (avatarInput && avatarInput.files && avatarInput.files[0]) {
-                formData.append('avatar', avatarInput.files[0]);
-            }
-
-            // Also collect Account tab data
-            const loveView = document.getElementById('loveView')?.value;
-            const qualities = document.getElementById('qualities')?.value;
-            const idealDate = document.getElementById('idealDate')?.value;
-            const relationshipType = document.getElementById('relationshipType')?.value;
-            const dealbreakers = document.getElementById('dealbreakers')?.value;
-            const favDateActivity = document.getElementById('favDateActivity')?.value;
-            const longDistance = document.getElementById('longDistance')?.value;
-            const pets = document.getElementById('pets')?.value;
-            const datingFreq = document.getElementById('datingFreq')?.value;
-
-            // Only append Account data if it exists
-            if (loveView) formData.append('loveView', loveView);
-            if (qualities) formData.append('qualities', qualities);
-            if (idealDate) formData.append('idealDate', idealDate);
-            if (relationshipType) formData.append('relationshipType', relationshipType);
-            if (dealbreakers) formData.append('dealbreakers', dealbreakers);
-            if (favDateActivity) formData.append('favDateActivity', favDateActivity);
-            if (longDistance) formData.append('longDistance', longDistance);
-            if (pets) formData.append('pets', pets);
-            if (datingFreq) formData.append('datingFreq', datingFreq);
-
-            // Send request
-            const res = await fetch('/update_user_info', {
-                method: 'POST',
-                body: formData,
-                credentials: 'include'
-            });
-
-            const result = await res.json();
-            
-            if (result.status === 'ok') {
-                // Show success message
-                submitBtn.innerHTML = '<i class="fas fa-check me-2"></i>Saved!';
-                // Redirect to home after a short delay
-                setTimeout(() => {
-                    window.location.href = '/';
-                }, 1000);
-            } else {
-                throw new Error(result.message || 'Update failed');
-            }
-        } catch (error) {
-            console.error('Error updating user information:', error);
-            // Show error message
-            submitBtn.innerHTML = '<i class="fas fa-times me-2"></i>Failed';
-            setTimeout(() => {
-                submitBtn.innerHTML = originalBtnText;
-                submitBtn.disabled = false;
-            }, 2000);
-            alert(error.message || 'Failed to update profile. Please try again.');
-        }
-    };
-
-    // 验证登录状态并获取用户信息
-    async function verifyLoginAndGetUserInfo() {
-        try {
-            const response = await fetch('/get_user_info', {
-                method: 'GET',
-                credentials: 'include'
-            });
-            
-            if (response.status === 401) {
-                window.location.href = '/login_register';
-                return null;
-            }
-            
-            const data = await response.json();
-            if (data.status && data.status === 'not_logged_in') {
-                window.location.href = '/login_register';
-                return null;
-            }
-
-            return data.information || {};
-        } catch (error) {
-            console.error('Error verifying login:', error);
-            window.location.href = '/login_register';
-            return null;
-        }
-    }
-
-    // 页面初始化
-    document.addEventListener('DOMContentLoaded', async function() {
-        // 验证登录并获取用户信息
-        const userInfo = await verifyLoginAndGetUserInfo();
-        if (!userInfo) return;
-
-        // 填充表单
-        if (userInfo) {
-            // Profile tab
-            document.getElementById('nickname').value = userInfo.nickname || '';
-            document.getElementById('birthday').value = userInfo.birthday || '';
-            document.getElementById('hobbies').value = userInfo.hobbies || '';
-            
-            // 性别单选框
-            if (userInfo.gender) {
-                const gender = userInfo.gender;
-                if (gender === 'male') document.getElementById('genderMale').checked = true;
-                else if (gender === 'female') document.getElementById('genderFemale').checked = true;
-                else if (gender === 'other') document.getElementById('genderOther').checked = true;
-            }
-            
-            // 头像
-            if (userInfo.avatar) {
-                document.getElementById('avatarPreview').src = userInfo.avatar;
-                document.getElementById('avatar').src = userInfo.avatar;
-            }
-
-            // 初始化时也填充偏好设置
-            populatePreferenceFields(userInfo);
-        }
-    });
-
-    // Function to populate preference fields
-    function populatePreferenceFields(userInfo) {
-        if (!userInfo) return;
-        
-        console.log('Populating preference fields with:', userInfo); // 添加调试日志
-        
-        // Step 1 fields
-        const loveView = document.getElementById('loveView');
-        const qualities = document.getElementById('qualities');
-        const idealDate = document.getElementById('idealDate');
-        const relationshipType = document.getElementById('relationshipType');
-        const dealbreakers = document.getElementById('dealbreakers');
-        
-        if (loveView && userInfo.loveView) loveView.value = userInfo.loveView;
-        if (qualities && userInfo.qualities) qualities.value = userInfo.qualities;
-        if (idealDate && userInfo.idealDate) idealDate.value = userInfo.idealDate;
-        if (relationshipType && userInfo.relationshipType) relationshipType.value = userInfo.relationshipType;
-        if (dealbreakers && userInfo.dealbreakers) dealbreakers.value = userInfo.dealbreakers;
-        
-        // Step 2 fields
-        const favDateActivity = document.getElementById('favDateActivity');
-        const longDistance = document.getElementById('longDistance');
-        const pets = document.getElementById('pets');
-        const datingFreq = document.getElementById('datingFreq');
-        
-        if (favDateActivity && userInfo.favDateActivity) favDateActivity.value = userInfo.favDateActivity;
-        if (longDistance && userInfo.longDistance) longDistance.value = userInfo.longDistance;
-        if (pets && userInfo.pets) pets.value = userInfo.pets;
-        if (datingFreq && userInfo.datingFreq) datingFreq.value = userInfo.datingFreq;
-    }
-
-    // Tab switching functionality
-    document.querySelectorAll('.sidebar-menu .nav-link').forEach(link => {
-        link.addEventListener('click', async function(e) {
-            e.preventDefault();
-            // Remove active class from all links
-            document.querySelectorAll('.sidebar-menu .nav-link').forEach(l => l.classList.remove('active'));
-            // Add active class to clicked link
-            this.classList.add('active');
-            
-            // Hide all tab contents
-            document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = 'none');
-            
-            // Show the corresponding tab content
-            if (this.textContent.includes('Profile')) {
-                document.getElementById('profileTab').style.display = 'block';
-            } else if (this.textContent.includes('Preference')) {
-                document.getElementById('accountTab').style.display = 'block';
-                // 获取最新数据并填充
-                const userInfo = await fetchUserInfo();
-                if (userInfo) {
-                    populatePreferenceFields(userInfo);
+            const res = await fetch('/get_user_info');
+            const data = await res.json();
+            if(data.information) {
+                const info = data.information;
+                document.getElementById('nickname').value = info.nickname || '';
+                document.getElementById('age').value = info.age || '';
+                document.getElementById('gender').value = info.gender || 'female';
+                document.getElementById('occupation').value = info.occupation || '';
+                document.getElementById('bio').value = info.bio || '';
+                document.getElementById('interests').value = info.interests || '';
+                
+                // Avatar
+                if (info.avatar) {
+                    document.getElementById('avatar-img').src = '/' + info.avatar;
                 }
-            } else if (this.textContent.includes('Notifications')) {
-                alert('Notifications feature coming soon!');
-            } else if (this.textContent.includes('Security')) {
-                alert('Security settings coming soon!');
             }
-        });
+        } catch (e) {
+            console.error("Failed to load user info", e);
+        }
     });
 
-    // Function to fetch user information
-    async function fetchUserInfo() {
-        try {
-            const response = await fetch('/get_user_info', {
-                method: 'GET',
-                credentials: 'include'
-            });
-            
-            if (response.status === 401) {
-                window.location.href = '/login_register';
-                return null;
-            }
-            
-            const data = await response.json();
-            if (data.status && data.status === 'not_logged_in') {
-                window.location.href = '/login_register';
-                return null;
-            }
-
-            return data.information || {};
-        } catch (error) {
-            console.error('Error fetching user information:', error);
-            window.location.href = '/login_register';
-            return null;
+    // Avatar preview
+    function previewAvatar(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('avatar-img').src = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
         }
     }
 
-    // Multi-step form functionality
-    function renderButtons(step) {
-        const buttonRow = document.getElementById('buttonRow');
-        buttonRow.innerHTML = '';
-        if (step === 1) {
-            buttonRow.innerHTML = '<button type="button" id="nextStepBtn1" class="btn btn-primary w-100">Next Step</button>';
-        } else if (step === 2) {
-            buttonRow.innerHTML = '<button type="button" id="prevStepBtn2" class="btn btn-outline-secondary w-50">Previous Step</button>' +
-                                  '<button type="submit" id="submitBtn" class="btn btn-primary w-50">Submit</button>';
-        }
-        // Rebind events
-        if (step === 1) {
-            document.getElementById('nextStepBtn1').onclick = function(e) { e.preventDefault(); showStep(2); };
-        } else if (step === 2) {
-            document.getElementById('prevStepBtn2').onclick = function(e) { e.preventDefault(); showStep(1); };
-        }
-    }
-
-    function showStep(step) {
-        document.getElementById('step1').style.display = step === 1 ? 'block' : 'none';
-        document.getElementById('step2').style.display = step === 2 ? 'block' : 'none';
-        
-        if(step === 1) setProgress(50);
-        if(step === 2) setProgress(100);
-        
-        renderButtons(step);
-    }
-
-    function setProgress(val) {
-        var bar = document.getElementById('progressBar');
-        bar.style.width = val + '%';
-        bar.setAttribute('aria-valuenow', val);
-    }
-
-    // Initialize the multi-step form
-    showStep(1);
-
-    // Handle profile form submission (Account tab)
-    document.getElementById('profileForm').onsubmit = async function(e) {
+    // Submit form
+    document.getElementById('settings-form').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const form = e.target;
         
-        // Get submit button and show loading state
-        const submitBtn = document.getElementById('submitBtn');
-        const originalBtnText = submitBtn.innerHTML;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
-        submitBtn.disabled = true;
+        const formData = new FormData(e.target);
         
         try {
-            // Collect form data from Account tab
-            const formData = new FormData();
-            formData.append('loveView', form.loveView.value);
-            formData.append('qualities', form.qualities.value);
-            formData.append('idealDate', form.idealDate.value);
-            formData.append('relationshipType', form.relationshipType.value);
-            formData.append('dealbreakers', form.dealbreakers.value);
-            formData.append('favDateActivity', form.favDateActivity.value);
-            formData.append('longDistance', form.longDistance.value);
-            formData.append('pets', form.pets.value);
-            formData.append('datingFreq', form.datingFreq.value);
-
-            // Also collect Profile tab data
-            const nickname = document.getElementById('nickname')?.value;
-            const birthday = document.getElementById('birthday')?.value;
-            const hobbies = document.getElementById('hobbies')?.value;
-            const genderMale = document.getElementById('genderMale')?.checked;
-            const genderFemale = document.getElementById('genderFemale')?.checked;
-            const genderOther = document.getElementById('genderOther')?.checked;
-            let gender = '';
-            if (genderMale) gender = 'male';
-            else if (genderFemale) gender = 'female';
-            else if (genderOther) gender = 'other';
-            const avatarInput = document.getElementById('avatarInput');
-            
-            if (nickname !== undefined) formData.append('nickname', nickname);
-            if (birthday !== undefined) formData.append('birthday', birthday);
-            if (hobbies !== undefined) formData.append('hobbies', hobbies);
-            if (gender) formData.append('gender', gender);
-            if (avatarInput && avatarInput.files && avatarInput.files[0]) {
-                formData.append('avatar', avatarInput.files[0]);
-            }
-
-            // Send request
             const res = await fetch('/update_user_info', {
                 method: 'POST',
-                body: formData,
-                credentials: 'include'
+                body: formData
             });
-
-            const result = await res.json();
             
+            const result = await res.json();
             if (result.status === 'ok') {
-                // Show success message
-                submitBtn.innerHTML = '<i class="fas fa-check me-2"></i>Saved!';
-                // Redirect to home after a short delay
-                setTimeout(() => {
-                    window.location.href = '/';
-                }, 1000);
+                alert('Profile updated successfully!');
+                window.location.reload();
             } else {
-                throw new Error(result.message || 'Update failed');
+                alert('Failed to update: ' + (result.message || 'Unknown error'));
             }
-        } catch (error) {
-            console.error('Error updating user information:', error);
-            // Show error message
-            submitBtn.innerHTML = '<i class="fas fa-times me-2"></i>Failed';
-            setTimeout(() => {
-                submitBtn.innerHTML = originalBtnText;
-                submitBtn.disabled = false;
-            }, 2000);
-            alert(error.message || 'Failed to update profile. Please try again.');
+        } catch (e) {
+            console.error(e);
+            alert('Network error. Please try again.');
         }
-    };
-
-    // 登出按钮事件
-    document.getElementById('logoutBtn').onclick = function(e) {
-        e.preventDefault();
-        window.location.href = '/logout';
-    };
-    </script>
+    });
+</script>
 </body>
-</html> 
+</html>

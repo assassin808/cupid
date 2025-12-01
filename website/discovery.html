@@ -3,26 +3,78 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Discovery | Cupid</title>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <script src = "static/discovery.js"></script>
-  <link rel="stylesheet" href="static/discovery.css">
-  <title>Discover</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Reuse Premium Sandbox Styles for consistency -->
+  <link rel="stylesheet" href="static/sandbox.css?v=1764549900"> 
+  <link rel="stylesheet" href="static/discovery.css?v=1764549900">
 </head>
 <body>
-  <div class="avatar-matrix" id="avatar-matrix">
-    <!-- 头像矩阵将由JS渲染 -->
+<nav class="sidebar">
+    <div class="brand-box">
+        <a href="/" class="app-logo">Cupid</a>
+        <span class="slogan">Love First,<br>Know Later</span>
+        <span class="beta-badge">BETA</span>
+    </div>
+    <div class="nav-menu">
+        <a href="/home" class="nav-item ">
+            <span class="nav-icon"></span> Home
+        </a>
+        <a href="/discovery" class="nav-item active">
+            <span class="nav-icon"></span> Discovery
+        </a>
+        <a href="/sandbox" class="nav-item ">
+            <span class="nav-icon"></span> Sandbox
+        </a>
+    </div>
+    <div class="sidebar-footer">
+        <a href="/user_settings" class="nav-item ">
+            <span class="nav-icon"></span> Settings
+        </a>
+    </div>
+</nav>
+
+
+
+
+
+
+  <!-- Shared Premium Header -->
+  
+
+  <div class="radar-container">
+      <!-- Radar Center (Input) -->
+      <div class="radar-core">
+          <div class="radar-waves">
+              <div class="wave w1"></div>
+              <div class="wave w2"></div>
+              <div class="wave w3"></div>
+          </div>
+          
+          <div class="soul-input-glass">
+               <input type="text" id="soul-input" placeholder="Send a signal... (e.g. 'I love jazz')" autocomplete="off">
+               <button id="btn-scan" onclick="startScanning()">
+                   <i class="fas fa-search-location"></i>
+               </button>
+          </div>
+      </div>
+
+      <!-- Detected Agents (Injected by JS) -->
+      <div id="radar-field">
+          <!-- Agents will pop up here -->
+      </div>
   </div>
-  <div class="heart-container">
-    <button class="heart-btn" onclick="toggleHeart()">
-      <svg class="heart" id="heart-svg" viewBox="0 0 32 28">
-        <path d="M16 5.5C16 3.5 14.5 2 12.5 2C10.5 2 8.5 3.5 8.5 5.5C8.5 7.5 9 9 16 16C23 9 23.5 7.5 23.5 5.5C23.5 3.5 21.5 2 19.5 2C17.5 2 16 3.5 16 5.5Z"/>
-      </svg>
-    </button>
-    <div class="love-text">Click to Match with AI!</div>
-    <div id="heart-loading" style="display:none;margin-top:16px;"></div>
-    <div class="ai-indicator" style="font-size:12px;color:#666;margin-top:8px;opacity:0.8;">🤖 Powered by AI Personality Simulation</div>
+
+  <!-- Glass Modal -->
+  <div id="agent-modal" class="agent-modal">
+      <div class="glass-panel modal-panel">
+          <button class="close-modal" onclick="closeModal()">&times;</button>
+          <div class="modal-body" id="modal-body"></div>
+      </div>
   </div>
- 
+
+  <script src="static/discovery.js?v=1764549900"></script>
 </body>
 </html>

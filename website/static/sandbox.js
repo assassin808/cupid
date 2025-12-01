@@ -53,10 +53,40 @@ const sampleAvatars = {
 
 // Initialize sandbox
 document.addEventListener('DOMContentLoaded', function() {
+    checkAutoFill();
     checkBothAvatarsReady();
     addSampleButtons();
     initializeSocket();
     bindProfileFillButton();
+    checkPrefill();
+    
+    // Check for partner passed from Discovery
+    const pendingPartner = sessionStorage.getItem('selected_partner_agent');
+    if (pendingPartner) {
+        try {
+            const partner = JSON.parse(pendingPartner);
+            // Auto-fill Avatar 2
+            if (document.getElementById('avatar2-nickname')) document.getElementById('avatar2-nickname').value = partner.nickname || '';
+            if (document.getElementById('avatar2-age')) document.getElementById('avatar2-age').value = partner.age || '';
+            if (document.getElementById('avatar2-gender')) document.getElementById('avatar2-gender').value = partner.gender || 'female';
+            if (document.getElementById('avatar2-occupation')) document.getElementById('avatar2-occupation').value = partner.occupation || '';
+            if (document.getElementById('avatar2-interests')) document.getElementById('avatar2-interests').value = partner.interests || '';
+            if (document.getElementById('avatar2-bio')) document.getElementById('avatar2-bio').value = partner.bio || '';
+            
+            // Clear it so it doesn't persist forever
+            sessionStorage.removeItem('selected_partner_agent');
+            
+            // Show a nice toast
+            showMessage(`Matched with ${partner.nickname}! Their agent is ready.`, 'success');
+            
+            // Scroll to creation section
+            const creationSec = document.getElementById('creation-section');
+            if (creationSec) creationSec.scrollIntoView({ behavior: 'smooth' });
+            
+        } catch (e) {
+            console.error('Failed to parse partner data', e);
+        }
+    }
     bindFeedbackSubmit();
 });
 
@@ -147,7 +177,7 @@ function initializeSocket() {
     socket.on('simulation_completed', function(data) {
         console.log('=== SIMULATION COMPLETED EVENT RECEIVED ===');
         console.log('Data:', JSON.stringify(data).substring(0, 500));
-        alert('Simulation completed! Score: ' + (data.cumulative_rate || 'N/A')); // Temporary alert for debugging
+        // alert removed // Temporary alert for debugging
         simulationRunning = false;
         
         // Save current simulation for feedback use
@@ -459,6 +489,7 @@ function updateScoreEmoji(score) {
 // Display interaction timeline as "episodes"
 function displayTimeline(simulationData) {
     const timelineContainer = document.getElementById('timeline-container');
+    if (!timelineContainer) return; // New UI: timeline may be hidden/absent
     timelineContainer.innerHTML = '';
     
     if (!simulationData || simulationData.length === 0) {
@@ -572,6 +603,7 @@ function displayInsights(result) {
     ];
     
     const insightsContainer = document.getElementById('insights-container'); // May be null in new UI
+    if (!insightsContainer) return;
     insightsContainer.innerHTML = '';
     
     insights.forEach(insight => {
@@ -799,6 +831,7 @@ function collectFeedbackPayload() {
     const scenarioFeel = Array.from(document.querySelectorAll('input[name="scenario-feel"]:checked')).map(el => el.value);
     const useCase = Array.from(document.querySelectorAll('input[name="use-case"]:checked')).map(el => el.value);
     const improvements = Array.from(document.querySelectorAll('input[name="improvements"]:checked')).map(el => el.value);
+    const optionalComment = document.getElementById('optional-feedback-text') ? document.getElementById('optional-feedback-text').value : '';
     
     return {
         cumulative_rate: currentSimulation.cumulative_rate,
@@ -809,7 +842,8 @@ function collectFeedbackPayload() {
             engagement: engagement,
             scenario_feel: scenarioFeel,
             use_case: useCase,
-            improvements: improvements
+            improvements: improvements,
+            optional_comment: optionalComment
         },
         // Persona snapshots for trajectory
         persona: avatars.avatar1 ? {
@@ -930,28 +964,35 @@ function toggleSection(sectionId) {
 }
 
 // Show message function
-function showMessage(message, type = 'info') {
-    // Create or update message element
+function showMessage(msg, type = 'info') {
     let messageElement = document.getElementById('message-toast');
     if (!messageElement) {
         messageElement = document.createElement('div');
         messageElement.id = 'message-toast';
-        messageElement.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            border-radius: 8px;
-            color: white;
-            font-weight: 600;
-            z-index: 1000;
-            max-width: 300px;
-            opacity: 0;
-            transform: translateX(100%);
-            transition: all 0.3s ease;
-        `;
         document.body.appendChild(messageElement);
     }
+    
+    // Reset classes
+    messageElement.className = 'message-toast';
+    messageElement.classList.add(type);
+    
+    // Set text
+    messageElement.textContent = msg;
+    
+    // Clear manual styles that might interfere
+    messageElement.style = ''; 
+    
+    // Force reflow
+    void messageElement.offsetWidth;
+    
+    // Show (CSS animation handles the slide in)
+    messageElement.classList.add('show');
+    
+    // Hide after 3s
+    setTimeout(() => {
+        messageElement.classList.remove('show');
+    }, 3000);
+}
     
     // Set message and style based on type
     messageElement.textContent = message;
@@ -1242,15 +1283,9 @@ function initGameStage() {
         if (charRight) charRight.textContent = avatars.avatar1?.nickname || 'You';
         if (charLeft) charLeft.textContent = avatars.avatar2?.nickname || 'Partner';
         
-        // Set avatar initials/emoji based on gender
-        const getAvatarEmoji = (gender) => {
-            if (gender === 'female') return '👩';
-            if (gender === 'male') return '👨';
-            return '🧑';
-        };
-        
-        if (avatarRight) avatarRight.textContent = getAvatarEmoji(avatars.avatar1?.gender);
-        if (avatarLeft) avatarLeft.textContent = getAvatarEmoji(avatars.avatar2?.gender);
+        // Set premium SVG avatars
+        if (avatarRight) avatarRight.innerHTML = getGenderAvatarSVG(avatars.avatar1?.gender);
+        if (avatarLeft) avatarLeft.innerHTML = getGenderAvatarSVG(avatars.avatar2?.gender);
     }
 }
 
@@ -1331,4 +1366,98 @@ function getScoreEmoji(score) {
     if (score >= 25) return '😊';
     if (score >= 15) return '😐';
     return '💔';
+}
+
+function checkPrefill() {
+    const prefillData = sessionStorage.getItem('sandbox_partner_prefill');
+    if (prefillData) {
+        try {
+            const data = JSON.parse(prefillData);
+            console.log("Found partner prefill:", data);
+            
+            // Fill Avatar 2 form
+            if (document.getElementById('avatar2-nickname')) document.getElementById('avatar2-nickname').value = data.nickname || '';
+            if (document.getElementById('avatar2-age')) document.getElementById('avatar2-age').value = data.age || '';
+            if (document.getElementById('avatar2-gender')) document.getElementById('avatar2-gender').value = data.gender || 'female';
+            if (document.getElementById('avatar2-occupation')) document.getElementById('avatar2-occupation').value = data.occupation || '';
+            if (document.getElementById('avatar2-interests')) document.getElementById('avatar2-interests').value = data.interests || '';
+            if (document.getElementById('avatar2-bio')) document.getElementById('avatar2-bio').value = data.bio || '';
+            
+            // Clear it so it doesn't persist forever
+            sessionStorage.removeItem('sandbox_partner_prefill');
+            
+            showMessage('Partner loaded from Dating Hall! 💕', 'success');
+            
+            // Update global avatars object if needed (will be updated on input change anyway, but good to sync)
+            // But our code updates 'avatars' on input change events usually.
+            // Let's manually trigger input events to ensure state sync
+            setTimeout(() => {
+                const inputs = document.querySelectorAll('#avatar2-form input, #avatar2-form select, #avatar2-form textarea');
+                inputs.forEach(input => {
+                    input.dispatchEvent(new Event('input', { bubbles: true }));
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
+                });
+            }, 500);
+            
+        } catch (e) {
+            console.error("Error parsing prefill data", e);
+        }
+    }
+}
+
+// Check if we need to auto-fill partner from Discovery page
+function checkAutoFill() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('auto_fill_partner') === 'true') {
+        try {
+            const partnerData = JSON.parse(localStorage.getItem('sandbox_partner_preset'));
+            if (partnerData) {
+                // Fill Avatar 2 Form
+                const form = document.getElementById('avatar2-form');
+                if (form) {
+                    if (partnerData.name) document.getElementById('avatar2-nickname').value = partnerData.name;
+                    if (partnerData.age) document.getElementById('avatar2-age').value = partnerData.age;
+                    if (partnerData.gender) document.getElementById('avatar2-gender').value = partnerData.gender;
+                    if (partnerData.occupation) document.getElementById('avatar2-occupation').value = partnerData.occupation;
+                    if (partnerData.bio) document.getElementById('avatar2-bio').value = partnerData.bio;
+                    
+                    // Update global avatars object
+                    avatars.avatar2 = {
+                        nickname: partnerData.name,
+                        age: partnerData.age,
+                        gender: partnerData.gender,
+                        occupation: partnerData.occupation,
+                        bio: partnerData.bio
+                    };
+                    
+                    // Show toast
+                    if (typeof showMessage === 'function') {
+                        showMessage(`Selected partner: ${partnerData.name}`, 'success');
+                    }
+                    
+                    // Clean up
+                    localStorage.removeItem('sandbox_partner_preset');
+                    
+                    // Scroll to top to show filled form
+                    window.scrollTo(0, 0);
+                }
+            }
+        } catch (e) {
+            console.error("Failed to auto-fill partner", e);
+        }
+    }
+}
+
+// Helper to get Premium SVG Avatar
+function getGenderAvatarSVG(gender) {
+    // Premium Gradient SVGs
+    const svgMale = `<svg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg' style='width:100%;height:100%;border-radius:50%;'><defs><linearGradient id='gM' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='#a1c4fd'/><stop offset='100%' stop-color='#c2e9fb'/></linearGradient></defs><circle cx='50' cy='50' r='50' fill='url(#gM)'/><path d='M50 25C40 25 32 33 32 43C32 53 40 61 50 61C60 61 68 53 68 43C68 33 60 25 50 25ZM28 82C28 70 38 63 50 63C62 63 72 70 72 82' fill='white' fill-opacity='0.9'/></svg>`;
+    
+    const svgFemale = `<svg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg' style='width:100%;height:100%;border-radius:50%;'><defs><linearGradient id='gF' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='#fdcbf1'/><stop offset='100%' stop-color='#e6dee9'/></linearGradient></defs><circle cx='50' cy='50' r='50' fill='url(#gF)'/><path d='M50 25C40 25 32 33 32 43C32 53 40 61 50 61C60 61 68 53 68 43C68 33 60 25 50 25ZM28 82C28 70 38 63 50 63C62 63 72 70 72 82' fill='white' fill-opacity='0.9'/></svg>`;
+    
+    const svgNeutral = `<svg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg' style='width:100%;height:100%;border-radius:50%;'><defs><linearGradient id='gN' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='#cfd9df'/><stop offset='100%' stop-color='#e2ebf0'/></linearGradient></defs><circle cx='50' cy='50' r='50' fill='url(#gN)'/><path d='M50 25C40 25 32 33 32 43C32 53 40 61 50 61C60 61 68 53 68 43C68 33 60 25 50 25ZM28 82C28 70 38 63 50 63C62 63 72 70 72 82' fill='white' fill-opacity='0.9'/></svg>`;
+    
+    if (gender === 'male') return svgMale;
+    if (gender === 'female') return svgFemale;
+    return svgNeutral;
 }

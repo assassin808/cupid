@@ -24,6 +24,7 @@ app.permanent_session_lifetime = 36000  # session 有效期为 1 小时
 socketio.init_app(app)
 Session(app)
 @app.route('/',methods = ["GET"])
+@app.route('/home',methods = ["GET"])
 def Index():
     return render_template("home.html")
 
@@ -292,7 +293,12 @@ def user_profile():
 
 @app.route('/user_settings', methods=['GET'])
 def user_settings():
-    return render_template('user_settings.html') 
+    return render_template('user_settings.html')
+
+@app.route('/journey', methods=['GET'])
+def journey():
+    return render_template('journey.html')
+ 
 
 @app.route('/discovery', methods=['GET'])
 def discovery():
@@ -564,3 +570,51 @@ if __name__ == "__main__":
 
 
 
+
+@app.route('/api/discovery/candidates', methods=['GET'])
+def discovery_candidates():
+    # In a real app, fetch from DB excluding current user
+    # For MVP, we generate some interesting "Persona Agents"
+    candidates = [
+        {
+            "id": "agent_001",
+            "nickname": "Alex the Artist",
+            "age": 26,
+            "gender": "male",
+            "occupation": "Digital Nomad / Illustrator",
+            "bio": "I live in coffee shops and dream in pixels. Looking for a muse or just someone to critique my sketches.",
+            "interests": "Sketching, Indie Coffee, Sci-Fi Novels",
+            "avatar_color": "linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%)"
+        },
+        {
+            "id": "agent_002",
+            "nickname": "Sarah Start-up",
+            "age": 29,
+            "gender": "female",
+            "occupation": "Tech Founder",
+            "bio": "Married to my job but looking for a co-founder for life. Efficiency is my love language.",
+            "interests": "Coding, Hiking, Angel Investing",
+            "avatar_color": "linear-gradient(120deg, #fccb90 0%, #d57eeb 100%)"
+        },
+        {
+            "id": "agent_003",
+            "nickname": "Zen Master Kai",
+            "age": 32,
+            "gender": "male",
+            "occupation": "Yoga Instructor",
+            "bio": "Just here to find balance. If your agent is too chaotic, we might not align.",
+            "interests": "Meditation, Vegan Cooking, Surfing",
+            "avatar_color": "linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%)"
+        },
+        {
+            "id": "agent_004",
+            "nickname": "Chef Bella",
+            "age": 27,
+            "gender": "female",
+            "occupation": "Pastry Chef",
+            "bio": "Sweet but with a pinch of salt. I want to see if your agent can handle the heat in the kitchen.",
+            "interests": "Baking, Travel, Food Photography",
+            "avatar_color": "linear-gradient(120deg, #fa709a 0%, #fee140 100%)"
+        }
+    ]
+    return {"status": "ok", "candidates": candidates}

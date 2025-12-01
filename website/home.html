@@ -3,314 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home - Cupid</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="static/home.css">
+    <title>Cupid | Love First</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="static/sandbox.css?v=1764549900">
+    <link rel="stylesheet" href="static/home.css?v=1764549900">
 </head>
 <body>
-<div class="home-layout d-flex">
-    <!-- Sidebar -->
-    <aside class="home-sidebar d-flex flex-column">
-        <div class="sidebar-header px-3 py-3">
-            <span class="brand-title fs-5 fw-bold">cupid.ai</span>
-        </div>
-        <div class="sidebar-section px-3">
-            <div class="text-muted small mb-2">Functions</div>
-            <ul class="list-unstyled function-list">
-                <li class="mb-3">
-                    <a href="/users" class="function-btn d-flex align-items-center">
-                        <i class="fas fa-comments fa-lg me-2"></i> <span>Chat</span>
-                    </a>
-                </li>
-                <li class="mb-3">
-                    <a href="/discovery" class="function-btn d-flex align-items-center">
-                        <i class="fas fa-compass fa-lg me-2"></i> <span>Discovery</span>
-                    </a>
-                </li>
-                <li class="mb-3">
-                    <a href="/sandbox" class="function-btn d-flex align-items-center">
-                        <i class="fas fa-flask fa-lg me-2"></i> <span>AI Sandbox</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/user_settings" class="function-btn d-flex align-items-center">
-                        <i class="fas fa-cog fa-lg me-2"></i> <span>Settings</span>
-                    </a>
-                </li>
-            </ul>
-        </div>
-        <div class="sidebar-footer mt-auto px-3 pb-3">
-            <a href="/user_settings" class="d-flex align-items-center user-center-link">
-                <img src="https://randomuser.me/api/portraits/women/1.jpg" class="avatar-lg me-2" id = "avatar">
-                <span class="fw-semibold" id = "nickname">BrightAlbatross5487</span>
-            </a>
-        </div>
-    </aside>
-    <!-- Main Content -->
-    <main class="home-main flex-grow-1 p-4">
-        <div class="d-flex align-items-center mb-4">
-            <span class="welcome-text fs-5 fw-semibold me-2">Welcome back,</span>
-            <span class="nickname fw-bold text-primary">BrightAlbatross5487</span>
-        </div>
-        <div class="row g-4">
-            <div class="col-12">
-                <h6 class="fw-bold mb-3 text-start">Recommended for you</h6>
-                <div class="row">
-                    <div class="col-12 col-sm-6 col-md-3 mb-4">
-                        <div class="card character-card flex-row align-items-center p-3">
-                            <div class="character-avatar me-3">
-                                <img src="https://randomuser.me/api/portraits/men/22.jpg" alt="avatar">
-                            </div>
-                            <div class="character-info flex-grow-1">
-                                <div class="character-title">Coffee Shop Artist</div>
-                                <div class="character-subtitle">由 @artlover 创建</div>
-                                <div class="character-desc">Sketching your portrait while you enjoy your latte.</div>
-                                <div class="character-meta mt-2"><i class="fas fa-comment-dots me-1"></i>15.2m</div>
-                            </div>
-                        </div>
+<nav class="sidebar">
+    <div class="brand-box">
+        <a href="/" class="app-logo">Cupid</a>
+        <span class="slogan">Love First,<br>Know Later</span>
+        <span class="beta-badge">BETA</span>
+    </div>
+    <div class="nav-menu">
+        <a href="/home" class="nav-item home">
+            <span class="nav-icon"></span> Home
+        </a>
+        <a href="/discovery" class="nav-item ">
+            <span class="nav-icon"></span> Discovery
+        </a>
+        <a href="/discovery" class="nav-item ">
+            <span class="nav-icon"></span> Sandbox
+        </a>
+    </div>
+    <div class="sidebar-footer">
+        <a href="/user_settings" class="nav-item ">
+            <span class="nav-icon"></span> Settings
+        </a>
+    </div>
+</nav>
+
+
+    <!-- Sidebar (Injected by script usually, but hardcoding for safety here) -->
+    
+
+    <div class="home-container">
+        
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="hero-badge">✨ AI Dating Experiment</div>
+            <h1 class="hero-title">Love First.<br>Know Later.</h1>
+            <p class="hero-subtitle">Experience relationships before they happen. <br>Watch how your persona handles the drama, the romance, and the unexpected.</p>
+            <a href="/discovery" class="btn-cta">Start Your Story</a>
+        </section>
+
+        <!-- Scenario Feed -->
+        <section class="scenario-feed">
+            <h2 class="section-title">Trending Stories</h2>
+            <div class="scenario-grid">
+                
+                <!-- Scenario Card 1 -->
+                <div class="scenario-card">
+                    <div class="card-badge">🔥 Trending</div>
+                    <h3 class="scenario-title">The Forgotten Anniversary</h3>
+                    <div class="mini-stage">
+                        <div class="mini-bubble left">Happy Anniversary! Did you get my gift?</div>
+                        <div class="mini-bubble right">Wait... is that today?</div>
                     </div>
-                    <div class="col-12 col-sm-6 col-md-3 mb-4">
-                        <div class="card character-card flex-row align-items-center p-3">
-                            <div class="character-avatar me-3">
-                                <img src="https://randomuser.me/api/portraits/women/33.jpg" alt="avatar">
-                            </div>
-                            <div class="character-info flex-grow-1">
-                                <div class="character-title">Bookstore Owner</div>
-                                <div class="character-subtitle">由 @bookworm 创建</div>
-                                <div class="character-desc">Recommending your next favorite book.</div>
-                                <div class="character-meta mt-2"><i class="fas fa-comment-dots me-1"></i>45.7m</div>
-                            </div>
+                    <div class="card-footer">
+                        <div class="agent-face elena"></div>
+                        <div class="agent-info">
+                            <strong>Elena</strong>'s heart broke...
                         </div>
-                    </div>
-                    <div class="col-12 col-sm-6 col-md-3 mb-4">
-                        <div class="card character-card flex-row align-items-center p-3">
-                            <div class="character-avatar me-3">
-                                <img src="https://randomuser.me/api/portraits/men/45.jpg" alt="avatar">
-                            </div>
-                            <div class="character-info flex-grow-1">
-                                <div class="character-title">Street Musician</div>
-                                <div class="character-subtitle">由 @melody 创建</div>
-                                <div class="character-desc">Playing your favorite song on the guitar.</div>
-                                <div class="character-meta mt-2"><i class="fas fa-comment-dots me-1"></i>28.9m</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-sm-6 col-md-3 mb-4">
-                        <div class="card character-card flex-row align-items-center p-3">
-                            <div class="character-avatar me-3">
-                                <img src="https://randomuser.me/api/portraits/women/55.jpg" alt="avatar">
-                            </div>
-                            <div class="character-info flex-grow-1">
-                                <div class="character-title">Yoga Instructor</div>
-                                <div class="character-subtitle">由 @zenmaster 创建</div>
-                                <div class="character-desc">Guiding you through a peaceful meditation.</div>
-                                <div class="character-meta mt-2"><i class="fas fa-comment-dots me-1"></i>32.1m</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-sm-6 col-md-3 mb-4">
-                        <div class="card character-card flex-row align-items-center p-3">
-                            <div class="character-avatar me-3">
-                                <img src="https://randomuser.me/api/portraits/men/67.jpg" alt="avatar">
-                            </div>
-                            <div class="character-info flex-grow-1">
-                                <div class="character-title">Chef</div>
-                                <div class="character-subtitle">由 @foodie 创建</div>
-                                <div class="character-desc">Cooking a romantic dinner for two.</div>
-                                <div class="character-meta mt-2"><i class="fas fa-comment-dots me-1"></i>19.4m</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-sm-6 col-md-3 mb-4">
-                        <div class="card character-card flex-row align-items-center p-3">
-                            <div class="character-avatar me-3">
-                                <img src="https://randomuser.me/api/portraits/women/78.jpg" alt="avatar">
-                            </div>
-                            <div class="character-info flex-grow-1">
-                                <div class="character-title">Photographer</div>
-                                <div class="character-subtitle">由 @lensmaster 创建</div>
-                                <div class="character-desc">Capturing your perfect moment.</div>
-                                <div class="character-meta mt-2"><i class="fas fa-comment-dots me-1"></i>25.6m</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-sm-6 col-md-3 mb-4">
-                        <div class="card character-card flex-row align-items-center p-3">
-                            <div class="character-avatar me-3">
-                                <img src="https://randomuser.me/api/portraits/men/89.jpg" alt="avatar">
-                            </div>
-                            <div class="character-info flex-grow-1">
-                                <div class="character-title">Travel Guide</div>
-                                <div class="character-subtitle">由 @wanderlust 创建</div>
-                                <div class="character-desc">Exploring hidden gems of the city.</div>
-                                <div class="character-meta mt-2"><i class="fas fa-comment-dots me-1"></i>38.3m</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-sm-6 col-md-3 mb-4">
-                        <div class="card character-card flex-row align-items-center p-3">
-                            <div class="character-avatar me-3">
-                                <img src="https://randomuser.me/api/portraits/women/91.jpg" alt="avatar">
-                            </div>
-                            <div class="character-info flex-grow-1">
-                                <div class="character-title">Dance Teacher</div>
-                                <div class="character-subtitle">由 @rhythm 创建</div>
-                                <div class="character-desc">Teaching you the steps to a perfect dance.</div>
-                                <div class="character-meta mt-2"><i class="fas fa-comment-dots me-1"></i>22.8m</div>
-                            </div>
-                        </div>
+                        <button class="btn-play" onclick="playScenario('anniversary')"><i class="fas fa-play"></i></button>
                     </div>
                 </div>
-            </div>
-            <div class="col-12 mt-4">
-                <h6 class="fw-bold mb-3 text-start">Trending</h6>
-                <div class="row">
-                    <div class="col-12 col-sm-6 col-md-3 mb-4">
-                        <div class="card character-card flex-row align-items-center p-3">
-                            <div class="character-avatar me-3">
-                                <img src="https://randomuser.me/api/portraits/men/23.jpg" alt="avatar">
-                            </div>
-                            <div class="character-info flex-grow-1">
-                                <div class="character-title">Poet</div>
-                                <div class="character-subtitle">由 @wordsmith 创建</div>
-                                <div class="character-desc">Writing verses about your eyes.</div>
-                                <div class="character-meta mt-2"><i class="fas fa-comment-dots me-1"></i>42.5m</div>
-                            </div>
-                        </div>
+
+                <!-- Scenario Card 2 -->
+                <div class="scenario-card">
+                    <div class="card-badge">🌶️ Spicy</div>
+                    <h3 class="scenario-title">The Jealous Ex</h3>
+                    <div class="mini-stage">
+                        <div class="mini-bubble left">Who was that texting you at midnight?</div>
+                        <div class="mini-bubble right">Just a coworker... relax.</div>
                     </div>
-                    <div class="col-12 col-sm-6 col-md-3 mb-4">
-                        <div class="card character-card flex-row align-items-center p-3">
-                            <div class="character-avatar me-3">
-                                <img src="https://randomuser.me/api/portraits/women/34.jpg" alt="avatar">
-                            </div>
-                            <div class="character-info flex-grow-1">
-                                <div class="character-title">Astronomer</div>
-                                <div class="character-subtitle">由 @stargazer 创建</div>
-                                <div class="character-desc">Stargazing under the night sky.</div>
-                                <div class="character-meta mt-2"><i class="fas fa-comment-dots me-1"></i>36.9m</div>
-                            </div>
+                    <div class="card-footer">
+                        <div class="agent-face marcus"></div>
+                        <div class="agent-info">
+                            <strong>Marcus</strong> got defensive...
                         </div>
-                    </div>
-                    <div class="col-12 col-sm-6 col-md-3 mb-4">
-                        <div class="card character-card flex-row align-items-center p-3">
-                            <div class="character-avatar me-3">
-                                <img src="https://randomuser.me/api/portraits/men/46.jpg" alt="avatar">
-                            </div>
-                            <div class="character-info flex-grow-1">
-                                <div class="character-title">Barista</div>
-                                <div class="character-subtitle">由 @coffeeart 创建</div>
-                                <div class="character-desc">Creating latte art just for you.</div>
-                                <div class="character-meta mt-2"><i class="fas fa-comment-dots me-1"></i>29.7m</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-sm-6 col-md-3 mb-4">
-                        <div class="card character-card flex-row align-items-center p-3">
-                            <div class="character-avatar me-3">
-                                <img src="https://randomuser.me/api/portraits/women/56.jpg" alt="avatar">
-                            </div>
-                            <div class="character-info flex-grow-1">
-                                <div class="character-title">Florist</div>
-                                <div class="character-subtitle">由 @bloom 创建</div>
-                                <div class="character-desc">Arranging flowers for your special day.</div>
-                                <div class="character-meta mt-2"><i class="fas fa-comment-dots me-1"></i>33.2m</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-sm-6 col-md-3 mb-4">
-                        <div class="card character-card flex-row align-items-center p-3">
-                            <div class="character-avatar me-3">
-                                <img src="https://randomuser.me/api/portraits/men/68.jpg" alt="avatar">
-                            </div>
-                            <div class="character-info flex-grow-1">
-                                <div class="character-title">Vintage Shop Owner</div>
-                                <div class="character-subtitle">由 @retro 创建</div>
-                                <div class="character-desc">Finding treasures from the past.</div>
-                                <div class="character-meta mt-2"><i class="fas fa-comment-dots me-1"></i>27.4m</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-sm-6 col-md-3 mb-4">
-                        <div class="card character-card flex-row align-items-center p-3">
-                            <div class="character-avatar me-3">
-                                <img src="https://randomuser.me/api/portraits/women/79.jpg" alt="avatar">
-                            </div>
-                            <div class="character-info flex-grow-1">
-                                <div class="character-title">Jewelry Designer</div>
-                                <div class="character-subtitle">由 @sparkle 创建</div>
-                                <div class="character-desc">Creating unique pieces just for you.</div>
-                                <div class="character-meta mt-2"><i class="fas fa-comment-dots me-1"></i>31.8m</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-sm-6 col-md-3 mb-4">
-                        <div class="card character-card flex-row align-items-center p-3">
-                            <div class="character-avatar me-3">
-                                <img src="https://randomuser.me/api/portraits/men/90.jpg" alt="avatar">
-                            </div>
-                            <div class="character-info flex-grow-1">
-                                <div class="character-title">Wine Sommelier</div>
-                                <div class="character-subtitle">由 @vintage 创建</div>
-                                <div class="character-desc">Tasting fine wines together.</div>
-                                <div class="character-meta mt-2"><i class="fas fa-comment-dots me-1"></i>24.5m</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-sm-6 col-md-3 mb-4">
-                        <div class="card character-card flex-row align-items-center p-3">
-                            <div class="character-avatar me-3">
-                                <img src="https://randomuser.me/api/portraits/women/92.jpg" alt="avatar">
-                            </div>
-                            <div class="character-info flex-grow-1">
-                                <div class="character-title">Art Gallery Curator</div>
-                                <div class="character-subtitle">由 @artlover 创建</div>
-                                <div class="character-desc">Exploring contemporary art together.</div>
-                                <div class="character-meta mt-2"><i class="fas fa-comment-dots me-1"></i>28.3m</div>
-                            </div>
-                        </div>
+                        <button class="btn-play" onclick="playScenario('jealousy')"><i class="fas fa-play"></i></button>
                     </div>
                 </div>
+
+                <!-- Scenario Card 3 -->
+                <div class="scenario-card">
+                    <div class="card-badge">💍 Deep</div>
+                    <h3 class="scenario-title">The Ultimatum</h3>
+                    <div class="mini-stage">
+                        <div class="mini-bubble left">We've been together for 5 years...</div>
+                        <div class="mini-bubble right">I'm not ready for labels yet.</div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="agent-info">
+                        </div>
+                        <button class="btn-play" onclick="playScenario('marriage')"><i class="fas fa-play"></i></button>
+                    </div>
+                </div>
+
             </div>
-        </div>
-    </main>
-</div>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    fetch('/get_user_info', {
-        method: 'GET',
-        credentials: 'include' // 保证带上cookie/session
-    })
-    .then(async res => {
-        if (res.status === 401) {
-            // 未登录，跳转到登录页
-            window.location.href = '/login_register';
-            return;
+        </section>
+
+    </div>
+
+    <script>
+        function playScenario(type) {
+            window.location.href = '/sandbox';
         }
-        // 也可能后端返回200但内容表明未登录
-        const data = await res.json();
-        if (data.status && data.status === 'not_logged_in') {
-            window.location.href = '/login_register';
-            return;
-        }
-        // 你可以在这里用data渲染页面
-        // Handle users without complete profile information
-        if (data.information) {
-            document.querySelector('#nickname').textContent = data.information.nickname || 'User';
-            document.querySelector('.nickname').textContent = data.information.nickname || 'User';
-            document.querySelector('#avatar').src = data.information.avatar || '/static/avatars/instance.png';
-        } else {
-            // User hasn't completed profile setup
-            document.querySelector('#nickname').textContent = 'User';
-            document.querySelector('.nickname').textContent = 'User';  
-            document.querySelector('#avatar').src = '/static/avatars/instance.png';
-        }
-    })
-    .catch(() => {
-        // 网络错误也跳转
-        window.location.href = '/login_register';
-    });
-});
-</script>
+    </script>
 </body>
-</html> 
+</html>

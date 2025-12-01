@@ -4,23 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cupid AI Sandbox - Love First, Know Later</title>
-    <link rel="stylesheet" href="/static/sandbox.css?v=1764417238">
+    <link rel="stylesheet" href="/static/sandbox.css?v=1764549900">
 </head>
 <body>
+<nav class="sidebar">
+    <div class="brand-box">
+        <a href="/" class="app-logo">Cupid</a>
+        <span class="slogan">Love First,<br>Know Later</span>
+        <span class="beta-badge">BETA</span>
+    </div>
+    <div class="nav-menu">
+        <a href="/home" class="nav-item ">
+            <span class="nav-icon"></span> Home
+        </a>
+        <a href="/discovery" class="nav-item ">
+            <span class="nav-icon"></span> Discovery
+        </a>
+        <a href="/sandbox" class="nav-item active">
+            <span class="nav-icon"></span> Sandbox
+        </a>
+    </div>
+    <div class="sidebar-footer">
+        <a href="/user_settings" class="nav-item ">
+            <span class="nav-icon"></span> Settings
+        </a>
+    </div>
+</nav>
+
+
+
+
+
     <div class="container">
         <!-- Header -->
-        <header class="header">
-            <div class="nav">
-                <a href="/" class="nav-link">🏠 Home</a>
-                <a href="/discovery" class="nav-link">💕 Discovery</a>
-                <a href="/sandbox" class="nav-link active">🧪 AI Sandbox</a>
-                <a href="/user_settings" class="nav-link">⚙️ Settings</a>
-                <a href="/logout" class="nav-link">🚪 Logout</a>
-            </div>
-            <h1 class="title">🎬 Your Own Love Show</h1>
-            <p class="subtitle">Love First, Know Later - Watch Your AI Agent's Dating Journey</p>
-            <p class="concept">💡 <strong>"Love First, Know Later"</strong> - Experience relationships through simulation, then understand why</p>
-        </header>
+        
 
         <!-- Main Content -->
         <div class="main-content">
@@ -289,6 +306,10 @@
                             </div>
                         </div>
                         
+                        <div class="optional-feedback-container">
+                            <label for="optional-feedback-text">📝 Any other thoughts? (Optional)</label>
+                            <textarea id="optional-feedback-text" class="feedback-textarea" placeholder="Tell us more about your experience..."></textarea>
+                        </div>
                         <button type="button" id="submit-feedback" class="btn-simulation">
                             ✅ Submit Feedback
                         </button>
@@ -302,6 +323,6 @@
     </div>
 
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-    <script src="/static/sandbox.js?v=1764417234"></script>
+    <script src="/static/sandbox.js?v=1764549900"></script>
 </body>
 </html>

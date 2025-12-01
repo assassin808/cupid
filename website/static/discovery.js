@@ -1,194 +1,266 @@
-// 用户信息列表
-var userId = 1;
-var userGender = 'male'
-var userName = "Zhengyang YAN"
-const emojiList = ['😫', '😣', '😘', '🥰', '😍'];
-// 处理头像点击事件
-function handleAvatarClick(agentId) {
-  console.log('点击了用户ID:', agentId);
-  // 这里可以添加更多点击后的处理逻辑
-  user = users.find((a) => a['id'] == agentId)
-  if (!user.showEmoji) {
-    alert('This user has not been matched yet. Please click the heart button to match first!');
-    return;
-  }
-  window.open(`/report?agent=${JSON.stringify(user)}&userId=${JSON.stringify(userId)}`)
+// Discovery Radar Logic - Real Users with Mock Fallback
+
+// Helper: Same SVG Avatars as Sandbox
+function getAvatarSVG(gender) {
+    const svgMale = `<svg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg' style='width:100%;height:100%;border-radius:50%;'><defs><linearGradient id='gM' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='#a1c4fd'/><stop offset='100%' stop-color='#c2e9fb'/></linearGradient></defs><circle cx='50' cy='50' r='50' fill='url(#gM)'/><path d='M50 25C40 25 32 33 32 43C32 53 40 61 50 61C60 61 68 53 68 43C68 33 60 25 50 25ZM28 82C28 70 38 63 50 63C62 63 72 70 72 82' fill='white' fill-opacity='0.9'/></svg>`;
+    const svgFemale = `<svg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg' style='width:100%;height:100%;border-radius:50%;'><defs><linearGradient id='gF' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='#fdcbf1'/><stop offset='100%' stop-color='#e6dee9'/></linearGradient></defs><circle cx='50' cy='50' r='50' fill='url(#gF)'/><path d='M50 25C40 25 32 33 32 43C32 53 40 61 50 61C60 61 68 53 68 43C68 33 60 25 50 25ZM28 82C28 70 38 63 50 63C62 63 72 70 72 82' fill='white' fill-opacity='0.9'/></svg>`;
+    return gender === 'male' ? svgMale : svgFemale;
 }
 
-// 渲染头像矩阵
-function renderAvatars(showRatings = false) {
-  const container = document.getElementById('avatar-matrix');
-  container.innerHTML = users.map((user, idx) => `
-    <div class="avatar-box">
-      <img class="avatar-img" src="${user.avatarUrl}" alt="${user.name}" onclick="handleAvatarClick('${user.id}')" style="cursor: pointer;">
-      <span class="avatar-emoji" id="emoji-${idx+1}" style="opacity:${user.showEmoji ? 1 : 0}">${user.emoji}</span>
-      <div class="user-name">${user.name}</div>
-      <div class="rating-text" style="opacity:${showRatings ? 1 : 0}">Match Rating:${user.rating}</div>
-    </div>
-  `).join('');
-}
-
-// 控制某个头像的emoji显示或隐藏
-function setEmojiVisible(id, visible) {
-  user = users.find((d)=> d.id == id)
-  user.showEmoji = visible;
-  renderAvatars();
-}
-
-// 爱心按钮点击效果
-function toggleHeart() {
-  const heart = document.getElementById('heart-svg');
-  heart.classList.toggle('liked');
-  showHeartLoading();
-}
-
-async function showHeartLoading() {
-  const loadingDiv = document.getElementById('heart-loading');
-  loadingDiv.innerHTML = '<div class="loader"></div><div style="margin-top:10px;font-size:14px;">🤖 AI Simulating Personality Interactions...</div>';
-  loadingDiv.style.display = 'block';
-
-  // Process each unmatched user
-  let processedCount = 0;
-  const totalUsers = users.filter(u => !u.showEmoji).length;
-  
-  for (const user of users) {
-    if (!user.showEmoji) {
-      processedCount++;
-      loadingDiv.innerHTML = `<div class="loader"></div><div style="margin-top:10px;font-size:14px;">🤖 AI Simulating with ${user.name}... (${processedCount}/${totalUsers})</div>`;
-      
-      try {
-        const response = await fetch('/matching', {
-          method: "POST",
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            "user_Id": userId,
-            "user_name": userName,
-            "agent": user  // Send only one user at a time
-          })
-        });
-        const result = await response.json();
-        console.log(result)
-        if (result.status === 'ok') {
-          // Update the user's rating and emoji
-          user.rating = result.cumulative_rate;
-          if(user.rating == 50){
-            user.emoji = emojiList[4];
-          }else{
-            user.emoji = emojiList[Math.floor(user.rating/10)];
-          }
-          user.showEmoji = true;
-        }
-      } catch (error) {
-        console.error('Error matching user:', error);
-      }
+// Mock Real Users (Fallback if DB is empty)
+const MOCK_REAL_USERS = [
+    {
+        id: 'mock_1',
+        name: 'Sarah',
+        gender: 'female',
+        role: 'Marketing Manager',
+        bio: "Love hiking on weekends and trying new restaurants. Looking for someone who shares my passion for travel.",
+        echoes: {
+            default: "Hey! What brings you here?",
+            love: "I'd love to get to know you better.",
+            sad: "I understand. Want to talk about it?",
+            fun: "Let's plan something fun together!"
+        },
+        pos: { top: '25%', left: '30%' }
+    },
+    {
+        id: 'mock_2',
+        name: 'James',
+        gender: 'male',
+        role: 'Software Engineer',
+        bio: "Into indie music and board games. Prefer deep conversations over small talk.",
+        echoes: {
+            default: "Hi there. What's on your mind?",
+            love: "I'm interested in getting to know you.",
+            sad: "I'm here if you need someone to listen.",
+            fun: "Sounds like a plan! What do you have in mind?"
+        },
+        pos: { top: '60%', left: '70%' }
+    },
+    {
+        id: 'mock_3',
+        name: 'Emma',
+        gender: 'female',
+        role: 'Teacher',
+        bio: "Elementary school teacher who loves reading and yoga. Looking for genuine connections.",
+        echoes: {
+            default: "Hello! Nice to meet you.",
+            love: "I'd love to explore this connection.",
+            sad: "I'm here for you. Let's talk.",
+            fun: "That sounds exciting! Count me in."
+        },
+        pos: { top: '40%', left: '15%' }
+    },
+    {
+        id: 'mock_4',
+        name: 'Michael',
+        gender: 'male',
+        role: 'Photographer',
+        bio: "Freelance photographer. Love capturing moments and exploring new places.",
+        echoes: {
+            default: "Hey! What's your story?",
+            love: "I'm intrigued. Let's see where this goes.",
+            sad: "I get it. Sometimes we all need someone.",
+            fun: "Adventure? I'm always up for that!"
+        },
+        pos: { top: '75%', left: '25%' }
+    },
+    {
+        id: 'mock_5',
+        name: 'Lisa',
+        gender: 'female',
+        role: 'Graphic Designer',
+        bio: "Creative soul who loves art galleries and coffee shops. Seeking meaningful connections.",
+        echoes: {
+            default: "Hi! What brings you here today?",
+            love: "I feel a connection. Let's explore it.",
+            sad: "I understand. Want to share?",
+            fun: "That sounds amazing! Let's do it."
+        },
+        pos: { top: '20%', left: '75%' }
     }
-  }
+];
 
-  loadingDiv.innerHTML = '<div class="success-tip">✨ AI Matching Complete!</div>';
-  renderAvatars(true); // 显示评分
-  
-  setTimeout(() => {
-    loadingDiv.innerHTML = '<div class="success-tip">✨ AI Matching Complete!</div>';
-    renderAvatars(true); // 显示评分
-    
-    setTimeout(() => {
-      loadingDiv.style.display = 'none';
-      loadingDiv.innerHTML = '';
-      
-      // 自动触发排序
-      animateSort(() => {
-        users.sort((a, b) => b.rating - a.rating);
-        renderAvatars(true);
-      });
-    }, 1200);
-  }, 100);
-}
+let REAL_AGENTS = [];
 
-// 排序动画辅助函数
-function animateSort(callback) {
-  const matrix = document.getElementById('avatar-matrix');
-  matrix.style.opacity = '0';
-  setTimeout(() => {
-    callback();
-    matrix.style.opacity = '1';
-  }, 400);
-}
-
-// 初始化
 document.addEventListener('DOMContentLoaded', async () => {
-  // 登录状态检查
-  try {
-    const res = await fetch('/get_user_info', {
-      method: 'GET',
-      credentials: 'include'
-    });
-    if (res.status === 401) {
-      window.location.href = '/login_register';
-      return;
-    }
-    const data = await res.json();
-    if (data.status && data.status === 'not_logged_in') {
-      window.location.href = '/login_register';
-      return;
-    }
-    // 已登录，继续后续逻辑
-    userId = data._id
-    userGender = data.information ? data.information.gender : 'unknown'
-    userName = data.information ? data.information.nickname : 'User'
-    try{
-      // Get users list
-      const usersResponse = await $.ajax({
-        url: "/users/get-list",
-        method: "POST",
-        headers: { 
-          'Accept': 'application/json',
-          'Content-Type': 'application/json' 
-        },
-        data: JSON.stringify({
-          user_Id: userId
-        })
-      });
-      
-      users = usersResponse;
-      
-      // Get matching list
-      const matchingResponse = await $.ajax({
-        url: "/users/get-matching-list",
-        method: "POST",
-        headers: { 
-          'Accept': 'application/json',
-          'Content-Type': 'application/json' 
-        },
-        data: JSON.stringify({
-          user_Id: userId
-        })
-      });
-      // Compare and update users with matching data
-      users.forEach(user => {
-        const matchingUser = matchingResponse.find(m => m.agent_id === user.id);
-        if (matchingUser) {
-          user.rating = matchingUser.rating;
-          if(user.rating == 50){
-            user.emoji = emojiList[4];
-          }else{
-            user.emoji = emojiList[Math.floor(user.rating/10)];
-          }
-          user.showEmoji = true;
-        } else {
-          user.rating = 0;
-          user.showEmoji = false;
+    // Load real users from database
+    try {
+        const res = await fetch('/get_user_info');
+        const myData = await res.json();
+        const myId = myData._id;
+
+        const listRes = await fetch('/users/get-list', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ user_Id: myId })
+        });
+        
+        if (listRes.ok) {
+            const users = await listRes.json();
+            if (users && users.length > 0) {
+                REAL_AGENTS = users.map(u => ({
+                    id: u.id,
+                    name: u.name || 'User',
+                    gender: u.gender || 'unknown',
+                    role: u.occupation || 'Member',
+                    bio: u.bio || "A real person exploring love through AI.",
+                    echoes: {
+                        default: generateEcho(u),
+                        love: generateEcho(u, 'love'),
+                        sad: generateEcho(u, 'sad'),
+                        fun: generateEcho(u, 'fun')
+                    },
+                    pos: { top: `${Math.random() * 60 + 20}%`, left: `${Math.random() * 60 + 20}%` }
+                }));
+            }
         }
-      });
-      renderAvatars(true);
+    } catch (e) {
+        console.error("Failed to load users", e);
     }
-    catch(e){
-      alert("Network Error!")
-      return;
+    
+    // If no real users, use mock (for demo)
+    if (REAL_AGENTS.length === 0) {
+        REAL_AGENTS = MOCK_REAL_USERS;
     }
-  } catch (e) {
-    window.location.href = '/login_register';
-    return;
-  }
-}); 
+    
+    // Setup input listener
+    document.getElementById('soul-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') startScanning();
+    });
+});
+
+// Simple echo generator
+function generateEcho(user, intent = 'default') {
+    const name = user.name || 'I';
+    if (intent === 'love') return `${name} is looking for something real.`;
+    if (intent === 'sad') return `${name} understands. Let's talk.`;
+    if (intent === 'fun') return `${name} is ready for an adventure!`;
+    return `${name} is here. What's on your mind?`;
+}
+
+async function startScanning() {
+    const input = document.getElementById('soul-input').value.toLowerCase();
+    const container = document.querySelector('.radar-container');
+    const field = document.getElementById('radar-field');
+    
+    // 1. Start Animation
+    container.classList.add('scanning');
+    field.innerHTML = '';
+    
+    // 2. Simulate Delay
+    await new Promise(r => setTimeout(r, 1500));
+    
+    // 3. Determine Intent
+    let intent = 'default';
+    if (input.includes('love') || input.includes('date')) intent = 'love';
+    if (input.includes('sad') || input.includes('lonely')) intent = 'sad';
+    if (input.includes('fun') || input.includes('go')) intent = 'fun';
+    
+    // 4. Reveal Agents
+    if (REAL_AGENTS.length === 0) {
+        field.innerHTML = '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:white;text-align:center;"><p>No users found. Be the first!</p></div>';
+        return;
+    }
+    
+    REAL_AGENTS.forEach((agent, idx) => {
+        setTimeout(() => {
+            const blip = document.createElement('div');
+            blip.className = 'radar-blip';
+            blip.style.top = agent.pos.top;
+            blip.style.left = agent.pos.left;
+            blip.onclick = () => openModal(agent);
+            
+            const reply = agent.echoes[intent] || agent.echoes.default;
+            
+            blip.innerHTML = `
+                <div class="blip-bubble">${reply}</div>
+                <div class="blip-avatar">
+                    ${getAvatarSVG(agent.gender)}
+                </div>
+            `;
+            
+            field.appendChild(blip);
+            setTimeout(() => blip.classList.add('detected'), 50);
+            
+        }, idx * 400);
+    });
+    
+    setTimeout(() => container.classList.remove('scanning'), REAL_AGENTS.length * 400 + 1000);
+}
+
+let currentAgent = null;
+
+function openModal(agent) {
+    currentAgent = agent;
+    const modal = document.getElementById('agent-modal');
+    const body = document.getElementById('modal-body');
+    
+    body.innerHTML = `
+        <div class="modal-avatar-large">${getAvatarSVG(agent.gender)}</div>
+        <div class="modal-name">${agent.name}</div>
+        <div class="modal-tagline">${agent.role}</div>
+        <div class="modal-bio">"${agent.bio}"</div>
+        <button class="btn-connect" onclick="connectWithAgent()">Start Story with ${agent.name}</button>
+    `;
+    
+    modal.classList.add('show');
+}
+
+function closeModal() {
+    document.getElementById('agent-modal').classList.remove('show');
+}
+
+function connectWithAgent() {
+    if (!currentAgent) return;
+    
+    localStorage.setItem('journey_partner', JSON.stringify({
+        name: currentAgent.name,
+        gender: currentAgent.gender,
+        occupation: currentAgent.role,
+        bio: currentAgent.bio,
+        id: currentAgent.id
+    }));
+    
+    window.location.href = '/journey?partner_id=' + currentAgent.id;
+}
+
+window.onclick = function(event) {
+    const modal = document.getElementById('agent-modal');
+    if (event.target == modal) closeModal();
+}
+
+// Realistic Mock Users (Fallback)
+const MOCK_REAL_USERS = [
+    {
+        id: 'mock_sarah', name: 'Sarah', gender: 'female', role: 'Marketing Manager',
+        bio: "Love hiking on weekends and trying new coffee shops. Looking for someone genuine.",
+        echoes: { default: "Hi there! I'm Sarah.", love: "Honesty is key for me.", sad: "A good walk always clears my mind.", fun: "Coffee?" },
+        pos: { top: '25%', left: '30%' }
+    },
+    {
+        id: 'mock_david', name: 'David', gender: 'male', role: 'Software Engineer',
+        bio: "Tech enthusiast, amateur chef. I make a mean pasta.",
+        echoes: { default: "Hey. I'm David.", love: "Cooking together is my love language.", sad: "Debugging life...", fun: "Let's build something cool." },
+        pos: { top: '60%', left: '70%' }
+    },
+    {
+        id: 'mock_jess', name: 'Jessica', gender: 'female', role: 'Teacher',
+        bio: "Teaching kids is my passion. I value patience and kindness.",
+        echoes: { default: "Hello! Nice to meet you.", love: "Kindness matters most.", sad: "Tomorrow is a new day.", fun: "Let's learn something new!" },
+        pos: { top: '40%', left: '60%' }
+    }
+];
+
+// Enhanced logic to use MOCK if REAL is empty
+// We need to patch the startScanning function or the data loading part.
+// Since I appended code before, I can't easily edit the middle. 
+// I will overwrite the empty check in startScanning by redefining the function slightly or handling it in data load.
+
+// Actually, I'll just add them to REAL_AGENTS if it's empty after load.
+setTimeout(() => {
+    if (REAL_AGENTS.length === 0) {
+        console.log("No real users found, loading realistic mocks...");
+        REAL_AGENTS = MOCK_REAL_USERS;
+    }
+}, 2000); // Wait for fetch to likely complete/fail
