@@ -12,48 +12,19 @@ import os
 from urllib.parse import urlparse
 from Database import dbClient
 from socket_events import socketio
-app = Flask(__name__,template_folder="website",static_folder = "website/static")
+app = Flask(__name__, template_folder="website", static_folder="website/static")
 app.config['UPLOAD_FOLDER'] = 'website/static/'
-secret_key =secrets.token_hex(32)
+secret_key = secrets.token_hex(32)
 app.secret_key = secret_key
 
-# Redis Session Configuration - Support both cloud Redis and local Redis
-redis_url = os.getenv("REDIS_URL")
-if redis_url:
-    # Use cloud Redis (e.g., Upstash, Render Redis)
-    try:
-        url = urlparse(redis_url)
-        app.config['SESSION_TYPE'] = 'redis'
-        app.config["SESSION_REDIS"] = redis.Redis(
-            host=url.hostname,
-            port=url.port or 6379,
-            password=url.password,
-            db=0,
-            ssl=url.scheme == "rediss"  # Support rediss:// for SSL
-        )
-        print(f"[Config] Using cloud Redis at {url.hostname}:{url.port}")
-    except Exception as e:
-        print(f"[Config] Failed to connect to cloud Redis: {e}, falling back to filesystem session")
-        app.config['SESSION_TYPE'] = 'filesystem'
-        app.config['SESSION_FILE_DIR'] = './flask_session'
-else:
-    # Try local Redis first (for local dev)
-    try:
-        app.config['SESSION_TYPE'] = 'redis'
-        app.config["SESSION_REDIS"] = redis.Redis(host="localhost", port=6379, db=0)
-        # Test connection
-        app.config["SESSION_REDIS"].ping()
-        print("[Config] Using local Redis")
-    except Exception as e:
-        # No Redis available - use filesystem-based session
-        print(f"[Config] No Redis available ({e}), using filesystem-based session")
-        app.config['SESSION_TYPE'] = 'filesystem'
-        app.config['SESSION_FILE_DIR'] = './flask_session'
-
+# Simplify: use filesystem-based server-side sessions everywhere (no Redis required in production)
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_FILE_DIR'] = './flask_session'
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_COOKIE_NAME'] = 'session'
 app.permanent_session_lifetime = 36000  # session 有效期为 1 小时
+
 socketio.init_app(app)
 Session(app)
 @app.route('/', methods=["GET"])
