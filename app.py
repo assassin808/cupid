@@ -9,14 +9,45 @@ from flask_session import Session
 import secrets
 import json
 import os
+from urllib.parse import urlparse
 from Database import dbClient
 from socket_events import socketio
 app = Flask(__name__,template_folder="website",static_folder = "website/static")
 app.config['UPLOAD_FOLDER'] = 'website/static/'
 secret_key =secrets.token_hex(32)
 app.secret_key = secret_key
-app.config['SESSION_TYPE'] = 'redis'
-app.config["SESSION_REDIS"] = redis.Redis(host = "localhost", port = 6379, db = 0)
+
+# Redis Session Configuration - Support both cloud Redis and local Redis
+redis_url = os.getenv("REDIS_URL")
+if redis_url:
+    # Use cloud Redis (e.g., Upstash, Render Redis)
+    try:
+        url = urlparse(redis_url)
+        app.config['SESSION_TYPE'] = 'redis'
+        app.config["SESSION_REDIS"] = redis.Redis(
+            host=url.hostname,
+            port=url.port or 6379,
+            password=url.password,
+            db=0,
+            ssl=url.scheme == "rediss"  # Support rediss:// for SSL
+        )
+        print(f"[Config] Using cloud Redis at {url.hostname}:{url.port}")
+    except Exception as e:
+        print(f"[Config] Failed to connect to cloud Redis: {e}, falling back to cookie session")
+        app.config['SESSION_TYPE'] = 'filesystem'  # Fallback to filesystem (or 'null' for cookie)
+else:
+    # Try local Redis first (for local dev)
+    try:
+        app.config['SESSION_TYPE'] = 'redis'
+        app.config["SESSION_REDIS"] = redis.Redis(host="localhost", port=6379, db=0)
+        # Test connection
+        app.config["SESSION_REDIS"].ping()
+        print("[Config] Using local Redis")
+    except:
+        # No Redis available - use simple cookie session
+        print("[Config] No Redis available, using cookie-based session")
+        app.config['SESSION_TYPE'] = 'null'  # Use Flask's default cookie session
+
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_COOKIE_NAME'] = 'session'
