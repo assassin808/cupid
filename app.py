@@ -911,7 +911,14 @@ Reply directly without quotes or explanation:"""
 
 
 if __name__ == "__main__":
-    # Use PORT from environment for PaaS (Render / Railway / etc.), default to 5001 for local dev
+    # Use PORT from environment for PaaS (Render / Railway / etc.), default to 5001 for local dev.
+    # allow_unsafe_werkzeug=True 避免 Flask 3 + Werkzeug 3 在生产环境禁止内置服务器。
     port = int(os.environ.get("PORT", 5001))
-    socketio.run(app, debug=True, port=port, host='0.0.0.0')
+    socketio.run(
+        app,
+        debug=True,
+        port=port,
+        host="0.0.0.0",
+        allow_unsafe_werkzeug=True,
+    )
 
