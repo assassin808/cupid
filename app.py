@@ -33,8 +33,9 @@ if redis_url:
         )
         print(f"[Config] Using cloud Redis at {url.hostname}:{url.port}")
     except Exception as e:
-        print(f"[Config] Failed to connect to cloud Redis: {e}, falling back to cookie session")
-        app.config['SESSION_TYPE'] = 'filesystem'  # Fallback to filesystem (or 'null' for cookie)
+        print(f"[Config] Failed to connect to cloud Redis: {e}, falling back to filesystem session")
+        app.config['SESSION_TYPE'] = 'filesystem'
+        app.config['SESSION_FILE_DIR'] = './flask_session'
 else:
     # Try local Redis first (for local dev)
     try:
@@ -43,10 +44,11 @@ else:
         # Test connection
         app.config["SESSION_REDIS"].ping()
         print("[Config] Using local Redis")
-    except:
-        # No Redis available - use simple cookie session
-        print("[Config] No Redis available, using cookie-based session")
-        app.config['SESSION_TYPE'] = 'null'  # Use Flask's default cookie session
+    except Exception as e:
+        # No Redis available - use filesystem-based session
+        print(f"[Config] No Redis available ({e}), using filesystem-based session")
+        app.config['SESSION_TYPE'] = 'filesystem'
+        app.config['SESSION_FILE_DIR'] = './flask_session'
 
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
