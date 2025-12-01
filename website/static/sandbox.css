@@ -2104,3 +2104,43 @@ body {
     letter-spacing: 1px;
     text-transform: uppercase;
 }
+
+/* =========================================
+   CLEAN SVG NAVIGATION ICONS
+   ========================================= */
+
+.nav-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 12px;
+    stroke: currentColor;
+    flex-shrink: 0;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 14px 20px;
+    text-decoration: none;
+    color: #4a5568;
+    border-radius: 14px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+}
+
+.nav-item:hover {
+    background: rgba(255, 255, 255, 0.6);
+    color: #667eea;
+    transform: translateX(4px);
+}
+
+.nav-item.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 5px 15px rgba(118, 75, 162, 0.3);
+}
+
+.nav-item.active .nav-icon {
+    stroke: white;
+}
