@@ -608,7 +608,10 @@ function triggerSpark(targetBlob) {
 function createSparkToast(agentData, targetBlob) {
     const container = document.getElementById('spark-container');
     if (!container) return;
-    
+
+    // Only show ONE active spark toast at a time – clear previous
+    Array.from(container.querySelectorAll('.spark-card')).forEach(card => card.remove());
+        
     const toastId = `toast-${agentData.id}`;
     
     const toast = document.createElement('div');

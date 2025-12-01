@@ -186,12 +186,11 @@
     width: 48px;
     height: 48px;
     border-radius: 50%;
-    background: #eee;
+    background-color: #eee;
     background-size: cover;
-    /* Special Spark Border */
-    border: 3px solid transparent;
-    background-clip: content-box, border-box;
-    background-image: inherit, linear-gradient(to bottom right, #f6d365 0%, #fda085 100%);
+    background-position: center;
+    /* Simple highlighted border so inline avatar URL is always used */
+    border: 2px solid #fda085;
     box-shadow: 0 4px 15px rgba(253, 160, 133, 0.4);
     flex-shrink: 0;
 }
