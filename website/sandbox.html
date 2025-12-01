@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cupid AI Sandbox - Love First, Know Later</title>
-    <link rel="stylesheet" href="/static/sandbox.css?v=1764550139">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/sandbox.css?v=1764551867">
 </head>
 <body>
 <nav class="sidebar">
@@ -49,7 +50,7 @@
         <div class="main-content">
             <!-- Love Trajectory Section (NEW) -->
             <div class="section" id="trajectory-section" style="display: none;">
-                <h2>📈 Your Agent's Love Trajectory</h2>
+                <h2><i class="fas fa-history" style="color: #d53f8c; margin-right: 10px;"></i>Your Agent's Love Trajectory</h2>
                 <p class="section-intro">See all the people your agent has dated and how each relationship unfolded.</p>
                 <div id="trajectory-list" class="trajectory-list">
                     <!-- Past simulations will be loaded here -->
@@ -62,9 +63,9 @@
             <!-- Avatar Creation Section -->
             <div class="section" id="creation-section">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h2 style="margin: 0;">👤 Create Your Love Agents</h2>
+                    <h2 style="margin: 0;"><i class="fas fa-user-friends" style="color: #667eea; margin-right: 10px;"></i>Create Your Love Agents</h2>
                     <button type="button" class="btn-sample" onclick="showTrajectorySection()">
-                        📈 View Love Trajectory
+                        <i class="fas fa-chart-line"></i> View Love Trajectory
                     </button>
                 </div>
                 <div class="avatar-forms">
@@ -329,6 +330,6 @@
     </div>
 
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-    <script src="/static/sandbox.js?v=1764550139"></script>
+    <script src="/static/sandbox.js?v=1764551867"></script>
 </body>
 </html>

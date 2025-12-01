@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Love Journey | Cupid</title>
+    <title>Love History | Cupid</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="static/sandbox.css?v=1764550139">
-    <link rel="stylesheet" href="static/journey.css?v=1764550139">
+    <link rel="stylesheet" href="static/sandbox.css?v=1764553709">
+    <link rel="stylesheet" href="static/journey.css?v=1764553709">
 </head>
 <body>
 <nav class="sidebar">
@@ -37,66 +37,24 @@
     </div>
 </nav>
 
-
-
-
-<div class="journey-container">
-    <div class="journey-header">
-        <h1>Your Love Journey</h1>
-        <p id="partner-name">With <strong id="partner-display">...</strong></p>
+<div class="journey-container" style="padding: 40px;">
+    <div class="journey-header" style="margin-bottom: 30px;">
+        <h1>Dating History</h1>
+        <p class="subtitle">Review your past encounters and deep connections.</p>
     </div>
 
-    <!-- Game Stage (Same as Sandbox) -->
-    <div class="game-stage" id="game-stage">
-        <div class="game-header">
-            <span>💕 Your Agent's Story</span>
-            <div class="game-score-badge">
-                <span>Compatibility:</span>
-                <span id="game-score-val">25</span>/50
-                <span id="game-score-emoji">😊</span>
-            </div>
-        </div>
-        <div class="game-content" id="game-content">
-            <div class="system-event">
-                <span class="system-badge">SYSTEM</span>
-                <div class="system-text">Starting your love journey...</div>
-            </div>
-        </div>
+    <!-- History Tabs -->
+    <div class="history-tabs">
+        <button class="tab-btn active" onclick="switchTab('short')">⚡️ Sparks (Short Dates)</button>
+        <button class="tab-btn" onclick="switchTab('long')">🌊 Deep Dives (Simulations)</button>
     </div>
 
-    <!-- Character Portraits -->
-    <div class="character-portraits">
-        <div class="char-portrait char-left">
-            <div class="char-avatar-circle" id="char-avatar-left"></div>
-            <div class="char-name" id="char-name-left">Partner</div>
-        </div>
-        <div class="char-portrait char-right">
-            <div class="char-avatar-circle" id="char-avatar-right"></div>
-            <div class="char-name" id="char-name-right">You</div>
-        </div>
-    </div>
-
-    <!-- Calibration Panel (Key Feature) -->
-    <div class="calibration-panel" id="calibration-panel" style="display:none;">
-        <div class="calibration-card glass-panel">
-            <h3>Does this feel like you?</h3>
-            <p class="calibration-scene" id="calibration-scene-text"></p>
-            <div class="calibration-actions">
-                <button class="btn-calibrate like" onclick="calibrate('like')">
-                    <i class="fas fa-heart"></i> This is me
-                </button>
-                <button class="btn-calibrate somewhat" onclick="calibrate('somewhat')">
-                    <i class="fas fa-question"></i> Somewhat
-                </button>
-                <button class="btn-calibrate unlike" onclick="calibrate('unlike')">
-                    <i class="fas fa-times"></i> Not like me
-                </button>
-            </div>
-        </div>
+    <!-- Content Area -->
+    <div id="history-content" class="history-grid">
+        <div class="loading-text">Loading your history...</div>
     </div>
 </div>
 
-<script src="/static/socket.io.min.js"></script>
-<script src="static/journey.js?v=1764550139"></script>
+<script src="static/journey.js?v=1764553709"></script>
 </body>
 </html>

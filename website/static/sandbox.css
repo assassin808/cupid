@@ -1773,6 +1773,35 @@ input:focus, select:focus, textarea:focus {
     animation: none !important;
 }
 
+/* Compact toast override - FORCE small size */
+.message-toast {
+    position: fixed;
+    top: 20px; /* Move to top */
+    right: 20px;
+    left: auto !important; /* Override center positioning */
+    transform: translateY(-20px);
+    width: auto !important;
+    min-width: 200px;
+    max-width: 320px !important; /* Force max width */
+    padding: 10px 16px !important;
+    border-radius: 12px !important;
+    font-size: 0.85rem !important;
+    line-height: 1.4;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+    background: rgba(255,255,255,0.98) !important;
+    color: #1a202c !important;
+    z-index: 99999;
+    white-space: normal !important; /* Allow text wrap */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.message-toast.show {
+    transform: translateY(0);
+}
+
 /* =========================================
    V4 POLISH: HEADER & BUTTONS
    ========================================= */
@@ -2143,4 +2172,24 @@ body {
 
 .nav-item.active .nav-icon {
     stroke: white;
+}
+
+/* Branching Button */
+.btn-branch {
+    margin-left: 10px;
+    padding: 4px 10px;
+    font-size: 0.8rem;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    cursor: pointer;
+    color: #718096;
+    transition: all 0.2s;
+}
+.btn-branch:hover {
+    background: #ebf8ff;
+    color: #3182ce;
+    border-color: #90cdf4;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }

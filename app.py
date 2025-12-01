@@ -469,6 +469,45 @@ def get_simulation_detail(simulation_id):
     except Exception as e:
         print(f"Get simulation detail error: {e}")
         return {"status": "error", "message": str(e)}, 500
+
+@app.route('/api/user/history', methods=['GET'])
+def user_history():
+    """Get comprehensive history: Short Sparks & Long Simulations"""
+    if 'logged_user' not in session:
+        return {"status":"fail", "message":"Not logged in"}, 401
+        
+    try:
+        db = dbClient()
+        user_id = session['logged_user']['_id']
+        
+        # 1. Short Interactions (Hall Sparks)
+        shorts = list(db.getCollection("short-interactions").find(
+            {"user_id": user_id}
+        ).sort("timestamp", -1).limit(20))
+        
+        # Enrich shorts with agent info if possible (mock for now or fetch)
+        for s in shorts:
+            s['_id'] = str(s['_id'])
+            # In real app, fetch target user info here
+        
+        # 2. Long Simulations (Sandbox)
+        longs = list(db.getCollection("sandbox-simulations").find(
+            {"user_id": user_id},
+            {"simulation": 0} 
+        ).sort("created_at", -1).limit(20))
+        
+        for l in longs:
+            l['_id'] = str(l['_id'])
+            
+        return {
+            "status": "ok",
+            "short_dates": shorts,
+            "long_dates": longs
+        }
+    except Exception as e:
+        print(f"History error: {e}")
+        return {"status": "error", "message": str(e)}, 500
+
 @app.route("/login",methods = ["POST"])
 def login():
     data = request.get_json()
@@ -489,12 +528,6 @@ def register():
     data = request.get_json()
     db = dbClient()
     try:
-        #check if the invitation code is valid
-        invitation_code = db.getCollection("invitation-code").find_one({"code":data["invite"]})
-        if not invitation_code:
-            return {"status":"fail","message":"Invitation code is invalid"}
-        if invitation_code["is_used"]:
-            return {"status":"fail","message":"Invitation code is already used"}
         #check if the email is already in the database
         if db.getCollection("Users").find_one({"email":data["email"]}):
             return {"status":"fail","message":"Email already exists"}
@@ -502,7 +535,6 @@ def register():
             "email":data["email"],
             "password":data["password"]
         })
-        db.getCollection("invitation-code").update_one({"code":data["invite"]}, {"$set":{"is_used":True}})
         
         # Automatically log in the user after registration
         user = db.getCollection("Users").find_one({"email": data["email"]})
@@ -618,3 +650,113 @@ def discovery_candidates():
         }
     ]
     return {"status": "ok", "candidates": candidates}
+
+@app.route('/api/hall/agents', methods=['GET'])
+def hall_agents():
+    """
+    Get active agents for the Hall.
+    Mix of real users and bots for density.
+    """
+    candidates = []
+    
+    # 1. Try to fetch real users (excluding self)
+    try:
+        db = dbClient()
+        current_user_id = None
+        if 'logged_user' in session:
+            current_user_id = session['logged_user']['_id']
+            
+        query = {}
+        if current_user_id:
+            query['_id'] = {'$ne': ObjectId(current_user_id)}
+            
+        real_users = list(db.getCollection("Users").find(query, {"password":0}).limit(10))
+        
+        for user in real_users:
+            info = user.get('information', {})
+            candidates.append({
+                "id": str(user['_id']),
+                "name": info.get('nickname', 'Mystery Agent'),
+                "avatar": info.get('avatar', 'default.png').replace('static/avatars/', ''),
+                "gender": info.get('gender', 'neutral'),
+                "bio": info.get('bio', 'Just browsing.'),
+                "type": "real"
+            })
+    except Exception as e:
+        print(f"Error fetching hall agents: {e}")
+        
+    # 2. Add Bots if not enough (Ensure at least 10 agents for a busy hall)
+    if len(candidates) < 10:
+        candidates.extend([
+            { "id": "bot_1", "name": "Elena", "avatar": "5bc44f2c589383ee6089a4e780bd.jpeg", "gender": "female", "bio": "Loves jazz and coffee.", "type": "bot" },
+            { "id": "bot_2", "name": "Marcus", "avatar": "be4a4df66e47a38238e790be206d5c4.jpg", "gender": "male", "bio": "Chef and traveler.", "type": "bot" },
+            { "id": "bot_3", "name": "Luna", "avatar": "d0a31e54-9d19-4c41-82dc-5bce0eb2eac9.png", "gender": "female", "bio": "Artist and dreamer.", "type": "bot" },
+            { "id": "bot_4", "name": "Alex", "avatar": "ad02ffb259fd1c3255f94fa92255c1c.jpg", "gender": "male", "bio": "Tech enthusiast.", "type": "bot" },
+            { "id": "bot_5", "name": "Sophia", "avatar": "990838cfdfef5631d48974231405ce4.jpg", "gender": "female", "bio": "Bookworm.", "type": "bot" },
+            { "id": "bot_6", "name": "Priya", "avatar": "7da32114-93c5-46e2-a7f7-629955f3784e.png", "gender": "female", "bio": "Lawyer with a passion for debate and fine wine.", "type": "bot" },
+            { "id": "bot_7", "name": "James", "avatar": "88e26321-4473-49c6-8268-673ac7a87ee6.png", "gender": "male", "bio": "Data Scientist. I see patterns in everything, including love.", "type": "bot" },
+            { "id": "bot_8", "name": "Zoe", "avatar": "d0a31e54-9d19-4c41-82dc-5bce0eb2eac9.png", "gender": "female", "bio": "Marine Biologist. Happiest underwater.", "type": "bot" },
+            { "id": "bot_9", "name": "Liam", "avatar": "be4a4df66e47a38238e790be206d5c4.jpg", "gender": "male", "bio": "Musician. Let's make sweet harmony together.", "type": "bot" },
+            { "id": "bot_10", "name": "Ravi", "avatar": "ad02ffb259fd1c3255f94fa92255c1c.jpg", "gender": "male", "bio": "Architect. Building foundations for a lasting relationship.", "type": "bot" }
+        ])
+        
+    return {"status": "ok", "agents": candidates}
+
+@app.route('/api/hall/check_interest', methods=['POST'])
+def hall_check_interest():
+    """
+    Determine if a spark happens between two agents.
+    Returns a short generated dialogue.
+    """
+    data = request.get_json()
+    target_id = data.get('target_id')
+    
+    # For MVP, simple random check + static generated dialogue
+    # In future, use LLM here based on profiles
+    
+    # Mock Dialogue Generator
+    import random
+    
+    dialogues = [
+        [
+            {"speaker": "Me", "text": "Hi! I love your vibe."},
+            {"speaker": "Partner", "text": "Thanks! I was just thinking about getting some coffee."},
+            {"speaker": "Me", "text": "Oh, I know a great place nearby. Do you like dark roasts?"},
+            {"speaker": "Partner", "text": "Absolutely. Lead the way!"}
+        ],
+        [
+            {"speaker": "Me", "text": "Is that a vintage camera?"},
+            {"speaker": "Partner", "text": "Good eye! Yes, I love film photography."},
+            {"speaker": "Me", "text": "That's so cool. I've been trying to get into it."},
+            {"speaker": "Partner", "text": "I can show you the basics sometime."}
+        ],
+        [
+            {"speaker": "Me", "text": "Hey, you look deep in thought."},
+            {"speaker": "Partner", "text": "Just pondering the meaning of... pizza toppings."},
+            {"speaker": "Me", "text": "Controversial topic. Pineapple or no?"},
+            {"speaker": "Partner", "text": "Definitely yes. Don't judge me!"}
+        ]
+    ]
+    
+    selected_dialogue = random.choice(dialogues)
+    
+    # Save Short Interaction History
+    try:
+        if 'logged_user' in session:
+            user_id = session['logged_user']['_id']
+            db = dbClient()
+            db.getCollection("short-interactions").insert_one({
+                "user_id": user_id,
+                "target_id": target_id,
+                "timestamp": str(ObjectId()),
+                "dialogue": selected_dialogue,
+                "status": "sparked"
+            })
+    except Exception as e:
+        print(f"Failed to save short interaction: {e}")
+    
+    return {
+        "status": "ok", 
+        "interested": True, 
+        "dialogue": selected_dialogue
+    }

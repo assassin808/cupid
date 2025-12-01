@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cupid | Love First</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="static/sandbox.css?v=1764550139">
-    <link rel="stylesheet" href="static/home.css?v=1764550139">
+    <link rel="stylesheet" href="static/sandbox.css?v=1764551867">
+    <link rel="stylesheet" href="static/home.css?v=1764553709">
 </head>
 <body>
 <nav class="sidebar">
@@ -47,73 +47,53 @@
         
         <!-- Hero Section -->
         <section class="hero-section">
-            <div class="hero-badge">✨ AI Dating Experiment</div>
-            <h1 class="hero-title">Love First.<br>Know Later.</h1>
-            <p class="hero-subtitle">Experience relationships before they happen. <br>Watch how your persona handles the drama, the romance, and the unexpected.</p>
-            <a href="/discovery" class="btn-cta">Start Your Story</a>
+            <div class="hero-badge">✨ AI Agent Hall</div>
+            <h1 class="hero-title">Let Your Agents<br>Mingle First.</h1>
+            <p class="hero-subtitle">Watch your AI persona interact with others in real-time.<br>See a spark? Dive in for a deep date.</p>
         </section>
 
-        <!-- Scenario Feed -->
-        <section class="scenario-feed">
-            <h2 class="section-title">Trending Stories</h2>
-            <div class="scenario-grid">
-                
-                <!-- Scenario Card 1 -->
-                <div class="scenario-card">
-                    <div class="card-badge">🔥 Trending</div>
-                    <h3 class="scenario-title">The Forgotten Anniversary</h3>
-                    <div class="mini-stage">
-                        <div class="mini-bubble left">Happy Anniversary! Did you get my gift?</div>
-                        <div class="mini-bubble right">Wait... is that today?</div>
-                    </div>
-                    <div class="card-footer">
-                        <div class="agent-face elena"></div>
-                        <div class="agent-info">
-                            <strong>Elena</strong>'s heart broke...
-                        </div>
-                        <button class="btn-play" onclick="playScenario('anniversary')"><i class="fas fa-play"></i></button>
-                    </div>
-                </div>
-
-                <!-- Scenario Card 2 -->
-                <div class="scenario-card">
-                    <div class="card-badge">🌶️ Spicy</div>
-                    <h3 class="scenario-title">The Jealous Ex</h3>
-                    <div class="mini-stage">
-                        <div class="mini-bubble left">Who was that texting you at midnight?</div>
-                        <div class="mini-bubble right">Just a coworker... relax.</div>
-                    </div>
-                    <div class="card-footer">
-                        <div class="agent-face marcus"></div>
-                        <div class="agent-info">
-                            <strong>Marcus</strong> got defensive...
-                        </div>
-                        <button class="btn-play" onclick="playScenario('jealousy')"><i class="fas fa-play"></i></button>
-                    </div>
-                </div>
-
-                <!-- Scenario Card 3 -->
-                <div class="scenario-card">
-                    <div class="card-badge">💍 Deep</div>
-                    <h3 class="scenario-title">The Ultimatum</h3>
-                    <div class="mini-stage">
-                        <div class="mini-bubble left">We've been together for 5 years...</div>
-                        <div class="mini-bubble right">I'm not ready for labels yet.</div>
-                    </div>
-                    <div class="card-footer">
-                        <div class="agent-info">
-                        </div>
-                        <button class="btn-play" onclick="playScenario('marriage')"><i class="fas fa-play"></i></button>
-                    </div>
-                </div>
-
+        <!-- Agent Hall Container -->
+        <div id="agent-hall-container" class="agent-hall">
+            <!-- Agents will be injected here -->
+            <div class="hall-status">
+                <span class="pulsing-dot"></span> Live: Agents mingling...
             </div>
-        </section>
+        </div>
+
+        <!-- Spark Modal (Short Interaction) -->
+        <div id="spark-modal" class="spark-modal">
+            <div class="spark-content glass-panel">
+                <div class="spark-header">
+                    <div class="spark-badge">✨ Spark Detected</div>
+                    <button class="close-spark" onclick="closeSparkModal()">&times;</button>
+                </div>
+                
+                <div class="spark-avatars">
+                    <div class="spark-agent me" id="spark-me"></div>
+                    <div class="spark-heart">❤️</div>
+                    <div class="spark-agent other" id="spark-other"></div>
+                </div>
+                
+                <div class="spark-dialogue" id="spark-dialogue">
+                    <!-- Auto-typed dialogue goes here -->
+                </div>
+                
+                <div class="spark-actions">
+                    <button class="btn-pass" onclick="closeSparkModal()">Pass</button>
+                    <button class="btn-deep-dive" onclick="startDeepDive()">
+                        Start Deep Date <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
 
     </div>
 
+    <script src="static/hall.js?v=1764553709"></script>
     <script>
+        // Legacy fallback if hall.js fails
         function playScenario(type) {
+            sessionStorage.setItem('home_scenario', type);
             window.location.href = '/sandbox';
         }
     </script>

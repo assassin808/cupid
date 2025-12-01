@@ -15,6 +15,9 @@ body {
     justify-content: center;
     width: 100%;
     height: 100%;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden;
 }
 
 /* Radar Core */
@@ -30,9 +33,10 @@ body {
 /* Radar Waves - Always Breathing */
 .radar-waves {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     pointer-events: none;
     z-index: 1;
 }
@@ -41,6 +45,8 @@ body {
     position: absolute;
     top: 50%;
     left: 50%;
+    margin-top: -100px;
+    margin-left: -100px;
     border-radius: 50%;
     border: 2px solid rgba(180, 148, 244, 0.3);
     box-shadow: 0 0 20px rgba(180, 148, 244, 0.1);
@@ -49,28 +55,34 @@ body {
 
 .w1 { 
     width: 200px; 
-    height: 200px; 
+    height: 200px;
+    margin-top: -100px;
+    margin-left: -100px;
     animation-delay: 0s;
 }
 .w2 { 
     width: 350px; 
-    height: 350px; 
+    height: 350px;
+    margin-top: -175px;
+    margin-left: -175px;
     animation-delay: 1.3s;
 }
 .w3 { 
     width: 500px; 
-    height: 500px; 
+    height: 500px;
+    margin-top: -250px;
+    margin-left: -250px;
     animation-delay: 2.6s;
 }
 
 @keyframes breathe {
     0%, 100% { 
-        transform: translate(-50%, -50%) scale(1); 
+        transform: scale(1); 
         opacity: 0.4;
         border-color: rgba(180, 148, 244, 0.4);
     }
     50% { 
-        transform: translate(-50%, -50%) scale(1.08); 
+        transform: scale(1.08); 
         opacity: 0.15;
         border-color: rgba(180, 148, 244, 0.2);
     }
@@ -84,12 +96,12 @@ body {
 
 @keyframes ripple {
     0% { 
-        transform: translate(-50%, -50%) scale(0.5); 
+        transform: scale(0.5); 
         opacity: 0.8; 
         border-width: 3px; 
     }
     100% { 
-        transform: translate(-50%, -50%) scale(2); 
+        transform: scale(2); 
         opacity: 0; 
         border-width: 1px; 
     }
@@ -98,13 +110,13 @@ body {
 /* Unified Glass Input */
 .soul-input-glass {
     width: 450px;
-    background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(26px) saturate(200%);
+    -webkit-backdrop-filter: blur(26px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.45);
     box-shadow: 
-        0 8px 32px rgba(31, 38, 135, 0.15),
-        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        0 12px 40px rgba(31, 38, 135, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
     border-radius: 50px;
     padding: 6px;
     display: flex;
@@ -114,8 +126,8 @@ body {
 }
 
 .soul-input-glass:focus-within {
-    background: rgba(255, 255, 255, 0.3);
-    border-color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.16);
+    border-color: rgba(255, 255, 255, 0.7);
     box-shadow: 
         0 12px 40px rgba(31, 38, 135, 0.25),
         inset 0 1px 0 rgba(255, 255, 255, 0.5),
@@ -123,16 +135,41 @@ body {
     transform: scale(1.02);
 }
 
-#soul-input {
+/* Override sandbox.css input styles for Discovery page */
+.soul-input-glass #soul-input,
+.soul-input-glass .soul-input-field,
+#soul-input,
+.soul-input-field,
+input#soul-input,
+input.soul-input-field {
     flex: 1;
-    background: transparent;
-    border: none;
-    box-shadow: none;
-    padding: 14px 20px;
+    width: auto !important;
+    background: none !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 14px 20px !important;
     font-size: 1rem;
     color: #2d3748;
     font-weight: 500;
-    outline: none;
+    outline: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    border-radius: 0 !important;
+    /* Safari specific fixes */
+    -webkit-background-clip: text !important;
+    background-clip: text !important; 
+    background-image: none !important;
+}
+
+.soul-input-field:-webkit-autofill,
+.soul-input-field:-webkit-autofill:hover,
+.soul-input-field:-webkit-autofill:focus,
+#soul-input:-webkit-autofill {
+    -webkit-text-fill-color: #2d3748 !important;
+    -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+    transition: background-color 9999s ease-out;
 }
 
 #soul-input::placeholder {

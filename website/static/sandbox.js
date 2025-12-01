@@ -53,12 +53,12 @@ const sampleAvatars = {
 
 // Initialize sandbox
 document.addEventListener('DOMContentLoaded', function() {
-    checkAutoFill();
-    checkBothAvatarsReady();
-    addSampleButtons();
-    initializeSocket();
-    bindProfileFillButton();
-    checkPrefill();
+    try { checkAutoFill(); } catch (e) { console.error("AutoFill Error", e); }
+    try { checkBothAvatarsReady(); } catch (e) { console.error("CheckAvatars Error", e); }
+    try { addSampleButtons(); } catch (e) { console.error("AddSampleButtons Error", e); }
+    try { initializeSocket(); } catch (e) { console.error("Socket Error", e); }
+    try { bindProfileFillButton(); } catch (e) { console.error("ProfileFill Error", e); }
+    try { checkPrefill(); } catch (e) { console.error("Prefill Error", e); }
     
     // Check for partner passed from Discovery
     const pendingPartner = sessionStorage.getItem('selected_partner_agent');
@@ -87,8 +87,66 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Failed to parse partner data', e);
         }
     }
+    
+    // If coming from Home scenario, auto-start a quick demo simulation
+    const homeScenario = sessionStorage.getItem('home_scenario');
+    if (homeScenario) {
+        sessionStorage.removeItem('home_scenario');
+        // Wait a bit so forms & sample buttons are mounted
+        setTimeout(() => {
+            try {
+                quickDemoFromHome(homeScenario);
+            } catch (e) {
+                console.error('Quick demo from Home failed', e);
+            }
+        }, 800);
+    }
     bindFeedbackSubmit();
 });
+
+// One-click demo: auto-fill both avatars and start simulation (used by Home)
+async function quickDemoFromHome(scenarioType) {
+    // Fill Avatar 1 (User) with sample 'emma' (or ideally user profile)
+    fillSample(1, 'emma');
+    
+    // Fill Avatar 2 (Partner) logic
+    const pendingPartner = sessionStorage.getItem('selected_partner_agent');
+    if (pendingPartner && scenarioType === 'spark_match') {
+        try {
+            const partnerData = JSON.parse(pendingPartner);
+            // Populate manually as fillSample uses presets
+            if (document.getElementById('avatar2-nickname')) document.getElementById('avatar2-nickname').value = partnerData.nickname || '';
+            if (document.getElementById('avatar2-age')) document.getElementById('avatar2-age').value = partnerData.age || '';
+            if (document.getElementById('avatar2-gender')) document.getElementById('avatar2-gender').value = partnerData.gender || 'female';
+            if (document.getElementById('avatar2-occupation')) document.getElementById('avatar2-occupation').value = partnerData.occupation || '';
+            if (document.getElementById('avatar2-interests')) document.getElementById('avatar2-interests').value = partnerData.interests || '';
+            if (document.getElementById('avatar2-bio')) document.getElementById('avatar2-bio').value = partnerData.bio || '';
+            
+            showMessage(`Continuing spark with ${partnerData.nickname}...`, 'success');
+            sessionStorage.removeItem('selected_partner_agent');
+        } catch (e) {
+            console.error("Error parsing partner for Deep Dive", e);
+            fillSample(2, 'alex'); // Fallback
+        }
+    } else {
+        // Legacy / Direct scenario fallback
+        fillSample(2, 'alex');
+    }
+    
+    // Create avatars on backend
+    await createAvatar(1);
+    await createAvatar(2);
+    
+    // Optionally store scenario type for backend/future use
+    try {
+        window.currentHomeScenario = scenarioType || null;
+    } catch (e) {
+        console.warn('Unable to store home scenario type', e);
+    }
+    
+    // Start simulation
+    startSimulation();
+}
 
 // Bind "use my profile" quick fill for Avatar1
 function bindProfileFillButton() {
@@ -230,6 +288,10 @@ function initializeSocket() {
 function addSampleButtons() {
     // Add buttons to Avatar 1 form
     const avatar1Form = document.getElementById('avatar1-form');
+    if (!avatar1Form) {
+        console.error('[Sandbox] avatar1-form not found!');
+        return;
+    }
     const sampleButtonsDiv1 = document.createElement('div');
     sampleButtonsDiv1.className = 'sample-buttons';
     sampleButtonsDiv1.innerHTML = `
@@ -243,6 +305,10 @@ function addSampleButtons() {
     
     // Add buttons to Avatar 2 form
     const avatar2Form = document.getElementById('avatar2-form');
+    if (!avatar2Form) {
+        console.error('[Sandbox] avatar2-form not found!');
+        return;
+    }
     const sampleButtonsDiv2 = document.createElement('div');
     sampleButtonsDiv2.className = 'sample-buttons';
     sampleButtonsDiv2.innerHTML = `
@@ -253,6 +319,8 @@ function addSampleButtons() {
         </div>
     `;
     avatar2Form.insertBefore(sampleButtonsDiv2, avatar2Form.firstChild);
+    
+    console.log('[Sandbox] Sample buttons added successfully');
 }
 
 // Fill form with sample data
@@ -547,11 +615,25 @@ function displayTimeline(simulationData) {
                     💕 Compatibility after this round: <span class="score-number">${scoreAfter}/50</span> · ${scoreDesc}
                 </div>
             </div>
-            <div class="event-time">Step ${i + 1}</div>
+            <div class="event-time">
+                Step ${i + 1} 
+                <button class="btn-branch" onclick="branchSimulation(${i})">✂️ Branch / Correct</button>
+            </div>
         `;
         
         timelineContainer.appendChild(epDiv);
         i += 3; // move to next episode group
+    }
+}
+
+// Branch/Correct Simulation Stub
+function branchSimulation(stepIndex) {
+    // For now, just show an alert as backend support is needed
+    // In a real implementation, this would open a modal to input "Correct Action"
+    // and then send a request to restart simulation from this step with the forced action.
+    const action = prompt("How would you react differently in this scenario?", "I would...");
+    if (action) {
+        alert(`Correction recorded: "${action}". \n\nBranching feature is coming soon! This will restart the simulation from Step ${stepIndex + 1} with your new action.`);
     }
 }
 
@@ -688,68 +770,8 @@ function renderFeedbackPanel(simulationState) {
     // Always show feedback section when simulation completes
     feedbackSection.style.display = 'block';
     
-    const keyMoments = simulationState.keyMoments || [];
-    if (!keyMoments.length) {
-        container.innerHTML = '<p class="no-moments">No specific key moments detected in this simulation.</p>';
-    } else {
-        container.innerHTML = '';
-    }
-    
-    if (!keyMoments.length) return;
-    
-    container.innerHTML = '';
-    keyMoments.forEach((m, idx) => {
-        const card = document.createElement('div');
-        card.className = 'key-moment-card';
-        const momentId = `moment-${idx}`;
-        card.innerHTML = `
-            <div class="moment-header">
-                <span class="moment-tag">⭐ ${m.label}</span>
-            </div>
-            <div class="moment-body">
-                <div class="moment-scenario"><strong>Scenario:</strong> ${m.scenario}</div>
-                <div class="moment-decision">
-                    <strong>Your Agent's Action:</strong> ${m.option ? (m.option + ' · ') : ''}${m.content || '(No detailed action in this round)'}
-                </div>
-                <div class="moment-rationale">
-                    <strong>Inner Thought:</strong> <em>${m.rationale || '(No details)'}</em>
-                </div>
-            </div>
-            <div class="moment-feedback">
-                <div class="moment-question">
-                    Does this behavior feel like something YOU would do?
-                </div>
-                <div class="moment-options">
-                    <label><input type="radio" name="${momentId}-likeness" value="very_like"> Very much like me</label>
-                    <label><input type="radio" name="${momentId}-likeness" value="somewhat_like"> Somewhat like me</label>
-                    <label><input type="radio" name="${momentId}-likeness" value="not_like"> Not like me at all</label>
-                </div>
-                <div class="moment-not-like-extra" id="${momentId}-extra" style="display:none;">
-                    <div class="extra-label">If not like you, what would you actually do?</div>
-                    <div class="extra-options">
-                        <label><input type="checkbox" value="more_proactive"> Be more proactive</label>
-                        <label><input type="checkbox" value="more_conservative"> Be more cautious</label>
-                        <label><input type="checkbox" value="more_direct"> Be more direct</label>
-                        <label><input type="checkbox" value="avoid_conflict"> Avoid conflict</label>
-                    </div>
-                    <textarea class="extra-text" placeholder="Other (20 chars max)" maxlength="40"></textarea>
-                </div>
-            </div>
-        `;
-        container.appendChild(card);
-        
-        const radios = card.querySelectorAll(`input[name="${momentId}-likeness"]`);
-        const extraDiv = card.querySelector(`#${momentId}-extra`);
-        radios.forEach(r => {
-            r.addEventListener('change', () => {
-                if (r.value === 'not_like') {
-                    extraDiv.style.display = 'block';
-                } else {
-                    extraDiv.style.display = 'none';
-                }
-            });
-        });
-    });
+    // Clear container (User requested to remove per-moment feedback)
+    container.innerHTML = '<p class="feedback-intro-note">Review the timeline above to branch or correct specific moments.</p>';
     
     feedbackSection.style.display = 'block';
 }
@@ -963,7 +985,7 @@ function toggleSection(sectionId) {
     }
 }
 
-// Show message function
+// Show message function (clean, single implementation)
 function showMessage(msg, type = 'info') {
     let messageElement = document.getElementById('message-toast');
     if (!messageElement) {
@@ -979,8 +1001,8 @@ function showMessage(msg, type = 'info') {
     // Set text
     messageElement.textContent = msg;
     
-    // Clear manual styles that might interfere
-    messageElement.style = ''; 
+    // Clear inline styles that might interfere
+    messageElement.style = '';
     
     // Force reflow
     void messageElement.offsetWidth;
@@ -991,32 +1013,6 @@ function showMessage(msg, type = 'info') {
     // Hide after 3s
     setTimeout(() => {
         messageElement.classList.remove('show');
-    }, 3000);
-}
-    
-    // Set message and style based on type
-    messageElement.textContent = message;
-    messageElement.className = `message-toast ${type}`;
-    
-    const colors = {
-        success: '#48bb78',
-        error: '#f56565',
-        info: '#4299e1',
-        warning: '#ed8936'
-    };
-    
-    messageElement.style.backgroundColor = colors[type] || colors.info;
-    
-    // Show message
-    setTimeout(() => {
-        messageElement.style.opacity = '1';
-        messageElement.style.transform = 'translateX(0)';
-    }, 100);
-    
-    // Hide message after 3 seconds
-    setTimeout(() => {
-        messageElement.style.opacity = '0';
-        messageElement.style.transform = 'translateX(100%)';
     }, 3000);
 }
 
@@ -1412,40 +1408,42 @@ function checkAutoFill() {
         try {
             const partnerData = JSON.parse(localStorage.getItem('sandbox_partner_preset'));
             if (partnerData) {
-                // Fill Avatar 2 Form
-                const form = document.getElementById('avatar2-form');
-                if (form) {
-                    if (partnerData.name) document.getElementById('avatar2-nickname').value = partnerData.name;
-                    if (partnerData.age) document.getElementById('avatar2-age').value = partnerData.age;
-                    if (partnerData.gender) document.getElementById('avatar2-gender').value = partnerData.gender;
-                    if (partnerData.occupation) document.getElementById('avatar2-occupation').value = partnerData.occupation;
-                    if (partnerData.bio) document.getElementById('avatar2-bio').value = partnerData.bio;
-                    
-                    // Update global avatars object
-                    avatars.avatar2 = {
-                        nickname: partnerData.name,
-                        age: partnerData.age,
-                        gender: partnerData.gender,
-                        occupation: partnerData.occupation,
-                        bio: partnerData.bio
-                    };
-                    
-                    // Show toast
-                    if (typeof showMessage === 'function') {
-                        showMessage(`Selected partner: ${partnerData.name}`, 'success');
-                    }
-                    
-                    // Clean up
-                    localStorage.removeItem('sandbox_partner_preset');
-                    
-                    // Scroll to top to show filled form
-                    window.scrollTo(0, 0);
-                }
+                fillAvatarForm(2, partnerData);
+                avatars.avatar2 = partnerData;
+                showMessage(`Selected partner: ${partnerData.name}`, 'success');
+                localStorage.removeItem('sandbox_partner_preset');
+                window.scrollTo(0, 0);
             }
         } catch (e) {
             console.error("Failed to auto-fill partner", e);
         }
     }
+    
+    // DEFAULT AUTO-FILL FOR SANDBOX
+    // Always pre-fill with sample profiles for easy testing
+    setTimeout(() => {
+        const name1 = document.getElementById('avatar1-nickname');
+        const name2 = document.getElementById('avatar2-nickname');
+        // Only fill if both are empty (not already filled by other methods)
+        if (name1 && !name1.value && name2 && !name2.value) {
+            console.log('[Sandbox] Auto-filling default profiles...');
+            fillSample(1, 'emma'); 
+            fillSample(2, 'alex');
+            showMessage('✨ Auto-filled default profiles for quick testing!', 'info');
+        }
+    }, 800);
+}
+
+// Helper to fill form from data object (Refactored from duplicate code)
+function fillAvatarForm(avatarNum, data) {
+    if (!data) return;
+    const prefix = `avatar${avatarNum}`;
+    if (document.getElementById(`${prefix}-nickname`)) document.getElementById(`${prefix}-nickname`).value = data.name || data.nickname || '';
+    if (document.getElementById(`${prefix}-age`)) document.getElementById(`${prefix}-age`).value = data.age || '';
+    if (document.getElementById(`${prefix}-gender`)) document.getElementById(`${prefix}-gender`).value = data.gender || 'female';
+    if (document.getElementById(`${prefix}-occupation`)) document.getElementById(`${prefix}-occupation`).value = data.occupation || '';
+    if (document.getElementById(`${prefix}-interests`)) document.getElementById(`${prefix}-interests`).value = data.interests || '';
+    if (document.getElementById(`${prefix}-bio`)) document.getElementById(`${prefix}-bio`).value = data.bio || '';
 }
 
 // Helper to get Premium SVG Avatar
