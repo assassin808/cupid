@@ -36,7 +36,10 @@
                         <label for="loginPassword" class="form-label">Password</label>
                         <input type="password" class="form-control" id="loginPassword" placeholder="Enter your password" required>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100 mb-3">Login</button>
+                    <button type="submit" class="btn btn-primary w-100 mb-2">Login</button>
+                    <button type="button" id="guestLoginBtn" class="btn btn-outline-secondary w-100 mb-3">
+                        Continue as Guest (No Signup)
+                    </button>
                     <div class="text-center text-muted small mb-2">or sign in with</div>
                     <div class="d-flex justify-content-center gap-2 mb-2">
                         <button type="button" class="btn btn-outline-dark flex-fill"><i class="fab fa-google me-2"></i>Google</button>
@@ -169,6 +172,24 @@
                     window.location.href = '/'; // 登录成功后跳转到 home 页面
                 } else {
                     alert(data.message);
+                }
+            })
+            .catch(() => alert('Network error!'));
+        };
+
+        // 一键游客模式登录
+        document.getElementById('guestLoginBtn').onclick = function() {
+            fetch('/login_guest', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'ok') {
+                    alert('Guest mode enabled! You are now exploring as a visitor.');
+                    window.location.href = '/home';
+                } else {
+                    alert(data.message || 'Guest login failed');
                 }
             })
             .catch(() => alert('Network error!'));

@@ -56,32 +56,39 @@
         <div id="agent-hall-container" class="agent-hall">
             <!-- Agents will be injected here -->
             <div class="hall-status">
-                <span class="pulsing-dot"></span> Live: Agents mingling...
+                <span class="pulsing-dot"></span>
+                <span>Agents chatting...</span>
             </div>
+            <div class="mingle-status">Mingling in progress</div>
         </div>
 
-        <!-- Spark Modal (Short Interaction) -->
-        <div id="spark-modal" class="spark-modal">
+        <!-- Spark Container (Stackable Toasts) -->
+        <div id="spark-container" class="spark-container">
+            <!-- Spark Cards will be injected here dynamically -->
+        </div>
+
+        <!-- Deep Dive Preview Modal -->
+        <div id="preview-modal" class="spark-modal">
             <div class="spark-content glass-panel">
                 <div class="spark-header">
-                    <div class="spark-badge">✨ Spark Detected</div>
-                    <button class="close-spark" onclick="closeSparkModal()">&times;</button>
+                    <div class="spark-badge">🌊 Deep Dive Preview</div>
+                    <button class="close-spark" onclick="closePreviewModal()">&times;</button>
                 </div>
                 
                 <div class="spark-avatars">
-                    <div class="spark-agent me" id="spark-me"></div>
+                    <div class="spark-agent me" id="preview-me"></div>
                     <div class="spark-heart">❤️</div>
-                    <div class="spark-agent other" id="spark-other"></div>
+                    <div class="spark-agent other" id="preview-other"></div>
                 </div>
                 
-                <div class="spark-dialogue" id="spark-dialogue">
-                    <!-- Auto-typed dialogue goes here -->
+                <div class="spark-dialogue" id="preview-dialogue">
+                    <!-- Full chat history goes here -->
                 </div>
                 
                 <div class="spark-actions">
-                    <button class="btn-pass" onclick="closeSparkModal()">Pass</button>
-                    <button class="btn-deep-dive" onclick="startDeepDive()">
-                        Start Deep Date <i class="fas fa-arrow-right"></i>
+                    <button class="btn-pass" onclick="closePreviewModal()">Keep Mingling</button>
+                    <button class="btn-deep-dive" id="btn-confirm-dive">
+                        Start Full Simulation <i class="fas fa-arrow-right"></i>
                     </button>
                 </div>
             </div>

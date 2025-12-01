@@ -146,6 +146,53 @@ async function quickDemoFromHome(scenarioType) {
     
     // Start simulation
     startSimulation();
+    
+    // --- NEW: Replay Spark Dialogue ---
+    if (scenarioType === 'spark_match') {
+        try {
+            const sparkDialogueJson = sessionStorage.getItem('spark_dialogue');
+            if (sparkDialogueJson) {
+                const dialogue = JSON.parse(sparkDialogueJson);
+                
+                // Wait for initGameStage to clear content, then append dialogue
+                setTimeout(() => {
+                    const gameContent = document.getElementById('game-content');
+                    if (gameContent && dialogue.length > 0) {
+                        // Add a divider
+                        const divider = document.createElement('div');
+                        divider.className = 'system-event';
+                        divider.innerHTML = `<span class="system-badge">PREVIOUSLY</span><div class="system-text">Spark history from Agent Hall</div>`;
+                        gameContent.appendChild(divider);
+                        
+                        dialogue.forEach(line => {
+                            // Try to map speaker to left/right
+                            // In Hall: "Me" is user, "Partner" is other
+                            // In Sandbox: Avatar 1 is user (Right), Avatar 2 is partner (Left)
+                            // This mapping is flipped from standard chat UI conventions often, but let's stick to Sandbox convention:
+                            // Sandbox: User (Right), Partner (Left)
+                            
+                            const isMe = line.speaker === 'Me';
+                            
+                            // Re-use addGameMessage logic but slightly simplified
+                            const div = document.createElement('div');
+                            div.className = `chat-message ${isMe ? 'message-right' : 'message-left'}`;
+                            div.innerHTML = `
+                                <div class="bubble-content" style="opacity: 0.8">
+                                    ${line.text}
+                                </div>
+                            `;
+                            gameContent.appendChild(div);
+                        });
+                        
+                        gameContent.scrollTop = gameContent.scrollHeight;
+                    }
+                    sessionStorage.removeItem('spark_dialogue');
+                }, 500); // delay slightly to appear after "Initialization complete"
+            }
+        } catch(e) {
+            console.error("Failed to load spark dialogue", e);
+        }
+    }
 }
 
 // Bind "use my profile" quick fill for Avatar1

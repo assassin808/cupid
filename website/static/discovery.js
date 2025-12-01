@@ -124,55 +124,88 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function startScanning() {
-    const input = document.getElementById('soul-input').value.toLowerCase();
+    const input = document.getElementById('soul-input').value;
     const container = document.querySelector('.radar-container');
     const field = document.getElementById('radar-field');
     const loading = document.getElementById('loading-pulse');
     
+    if (!input.trim()) return;
+
     // Start scanning animation
     container.classList.add('scanning');
     field.innerHTML = '';
     if (loading) loading.style.display = 'flex';
     
-    // Simulate processing
-    await new Promise(r => setTimeout(r, 1500));
+    // Process agents
+    // Limit to 4-5 agents to avoid too many API calls/tokens
+    const targets = ALL_AGENTS.slice(0, 5); 
     
+    // Create placeholders first (UI Feedback immediately)
+    const blipElements = [];
+    targets.forEach((agent, idx) => {
+        const blip = document.createElement('div');
+        blip.className = 'radar-blip';
+        // Randomize position slightly around their base pos if needed, 
+        // but using their fixed pos is fine for stability.
+        blip.style.top = agent.pos.top;
+        blip.style.left = agent.pos.left;
+        blip.onclick = () => openModal(agent);
+        
+        blip.innerHTML = `
+            <div class="blip-bubble typing">...</div>
+            <div class="blip-avatar">
+                ${getAvatarSVG(agent.gender)}
+            </div>
+        `;
+        
+        field.appendChild(blip);
+        blipElements.push({ element: blip, agent: agent });
+        
+        // Pop in animation
+        setTimeout(() => blip.classList.add('detected'), idx * 200);
+    });
+
     if (loading) loading.style.display = 'none';
     
-    // Determine intent
-    let intent = 'default';
-    if (input.includes('love') || input.includes('date') || input.includes('relationship')) intent = 'love';
-    if (input.includes('sad') || input.includes('lonely') || input.includes('down')) intent = 'sad';
-    if (input.includes('fun') || input.includes('adventure') || input.includes('travel')) intent = 'fun';
-    
-    // Reveal agents
-    ALL_AGENTS.forEach((agent, idx) => {
-        setTimeout(() => {
-            const blip = document.createElement('div');
-            blip.className = 'radar-blip';
-            blip.style.top = agent.pos.top;
-            blip.style.left = agent.pos.left;
-            blip.onclick = () => openModal(agent);
+    // Fetch Responses in Parallel
+    const promises = blipElements.map(async (item, idx) => {
+        try {
+            // Add slight delay per request to not hammer the server/rate limit
+            await new Promise(r => setTimeout(r, idx * 300));
             
-            const reply = agent.echoes[intent] || agent.echoes.default;
+            const res = await fetch('/api/soul_resonance', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    input: input,
+                    agent: {
+                        name: item.agent.name,
+                        role: item.agent.role,
+                        bio: item.agent.bio,
+                        age: item.agent.age
+                    }
+                })
+            });
             
-            blip.innerHTML = `
-                <div class="blip-bubble">${reply}</div>
-                <div class="blip-avatar">
-                    ${getAvatarSVG(agent.gender)}
-                </div>
-            `;
-            
-            field.appendChild(blip);
-            setTimeout(() => blip.classList.add('detected'), 50);
-            
-        }, idx * 350);
+            const data = await res.json();
+            const bubble = item.element.querySelector('.blip-bubble');
+            if (bubble) {
+                bubble.classList.remove('typing');
+                bubble.textContent = data.response || "...";
+            }
+        } catch (e) {
+            console.error("API Error", e);
+            const bubble = item.element.querySelector('.blip-bubble');
+            if (bubble) bubble.textContent = item.agent.echoes ? item.agent.echoes.default : "I feel you.";
+        }
     });
     
-    // Stop scanning after all revealed
+    await Promise.all(promises);
+    
+    // Stop scanning anim
     setTimeout(() => {
         container.classList.remove('scanning');
-    }, ALL_AGENTS.length * 350 + 500);
+    }, 1000);
 }
 
 function openModal(agent) {

@@ -287,6 +287,45 @@ def get_report():
 def login_register():
     return render_template('login_register.html')
 
+@app.route('/login_guest', methods=['POST'])
+def login_guest():
+    """
+    One-click guest login for quick demo.
+    Creates a lightweight guest user (if needed) and logs them in.
+    """
+    try:
+        db = dbClient()
+        # Create a fresh guest user each time to avoid collisions between testers
+        guest_id = ObjectId()
+        guest_email = f"guest+{str(guest_id)}@cupid.ai"
+        guest_user = {
+            "_id": guest_id,
+            "email": guest_email,
+            "password": "",           # no password (guest only, cannot log in via normal form)
+            "is_guest": True,
+            # Provide minimal profile so Hall / Discovery work without errors
+            "information": {
+                "nickname": "Guest",
+                "gender": "neutral",
+                "age": "25",
+                "occupation": "Curious Explorer",
+                "interests": "Trying AI dating, exploring Cupid",
+                "bio": "Guest user exploring Cupid without an account.",
+                "avatar": "static/avatars/instance.png"
+            }
+        }
+        db.getCollection("Users").insert_one(guest_user)
+
+        # Store in session (convert _id to string for JSON safety)
+        guest_user["_id"] = str(guest_id)
+        session['logged_user'] = guest_user
+        session.modified = True
+
+        return {"status": "ok", "guest": True, "email": guest_email}
+    except Exception as e:
+        print(f"Guest login error: {e}")
+        return {"status": "fail", "message": "Guest login failed"}, 500
+
 @app.route('/user_profile', methods=['GET'])
 def user_profile():
     return render_template('user_profile.html')
@@ -769,10 +808,6 @@ def hall_check_interest():
         "dialogue": selected_dialogue
     }
 
-
-if __name__ == "__main__":
-    socketio.run(app,debug = True,port = 5001, host = '0.0.0.0')
-
 # Discovery API: Real-time Agent Echo
 @app.route('/api/agent/echo', methods=['POST'])
 def agent_echo():
@@ -830,26 +865,53 @@ def soul_resonance():
     if not user_input or not agent_persona:
         return jsonify({"response": "..."})
         
-    # Construct prompt
-    name = agent_persona.get('name', 'Agent')
-    role = agent_persona.get('role', 'Unknown')
+    # Extract persona details
+    name = agent_persona.get('name', 'Someone')
+    role = agent_persona.get('role', 'a person')
     bio = agent_persona.get('bio', '')
+    age = agent_persona.get('age', 25)
     
-    system_prompt = f"""You are {name}, a {role}. Bio: {bio}.
-    Someone just shouted into the void: "{user_input}".
-    Reply with a short, resonance thought (max 15 words).
-    Be vague, poetic, or intriguing. Do not be a helpful assistant. Be a soul."""
+    # Build a realistic, conversational prompt
+    system_prompt = f"""You are {name}, {age} years old, working as {role}.
+About you: {bio}
+
+You are on a dating app. Someone just sent you this message: "{user_input}"
+
+Reply as {name} would naturally reply - be yourself, be genuine, and show your personality.
+Keep your response SHORT (1-2 sentences max, under 20 words).
+Don't be formal or robotic. Be warm, curious, or playful depending on your personality.
+If the message resonates with your interests, show enthusiasm.
+If it doesn't match your vibe, be politely neutral.
+
+Reply directly without quotes or explanation:"""
     
     try:
-        # Use existing Agent class for simplicity
-        # Ideally we should use a lighter model or cache this
         bot = Agent(system_prompt, name)
         reply = bot.sendMessage(user_input)
         
-        # Clean up quotes if any
-        reply = reply.strip('"').strip()
+        # Clean up response
+        reply = reply.strip('"').strip("'").strip()
+        # Truncate if too long
+        if len(reply) > 100:
+            reply = reply[:97] + "..."
+            
         return jsonify({"response": reply})
     except Exception as e:
         print(f"Resonance Error: {e}")
-        return jsonify({"response": "The signal is weak..."})
+        # Fallback based on personality keywords
+        fallbacks = [
+            f"Hey! That's interesting 😊",
+            f"I like that energy!",
+            f"Tell me more?",
+            f"Sounds fun!",
+            f"I'm curious now..."
+        ]
+        import random
+        return jsonify({"response": random.choice(fallbacks)})
+
+
+if __name__ == "__main__":
+    # Use PORT from environment for PaaS (Render / Railway / etc.), default to 5001 for local dev
+    port = int(os.environ.get("PORT", 5001))
+    socketio.run(app, debug=True, port=port, host='0.0.0.0')
 

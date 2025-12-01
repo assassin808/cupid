@@ -48,27 +48,35 @@
     position: absolute;
     width: 54px;
     height: 54px;
-    border-radius: 50%;
     background: white;
-    border: 2px solid white;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.02);
+    border: 2px solid rgba(255,255,255,0.8);
+    /* Organic shape */
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08), inset 0 0 20px rgba(255,255,255,0.5);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.4rem;
     cursor: pointer;
-    will-change: transform;
+    will-change: transform, border-radius;
+    animation: morph 8s ease-in-out infinite;
+}
+
+@keyframes morph {
+    0% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+    50% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+    100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
 }
 
 .agent-blob.me {
     border-color: #667eea;
     z-index: 5;
     box-shadow: 0 0 20px rgba(102, 126, 234, 0.25);
+    animation-duration: 6s; /* Me breathes faster */
 }
 
 .agent-blob:hover {
     z-index: 20;
-    /* Scale handled by transform in JS or we need !important if JS sets inline style */
     filter: brightness(1.05);
 }
 
@@ -92,14 +100,184 @@
     opacity: 1;
 }
 
-/* Spark Modal */
+/* ============================================
+   SPARK TOASTS - Stackable Side Widgets
+   ============================================ */
+
+.spark-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 340px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    z-index: 1000;
+    pointer-events: none; /* Let clicks pass through gaps */
+}
+
+.spark-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 20px;
+    padding: 16px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(102, 126, 234, 0.1);
+    pointer-events: auto;
+    transform: translateX(100%);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.spark-card.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.spark-card.hiding {
+    transform: translateX(100%);
+    opacity: 0;
+}
+
+.spark-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.spark-badge-mini {
+    background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+    color: #5c3a45;
+    padding: 4px 10px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-close-mini {
+    background: none;
+    border: none;
+    color: #a0aec0;
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 0;
+    line-height: 1;
+    transition: color 0.2s;
+}
+
+.btn-close-mini:hover {
+    color: #4a5568;
+}
+
+.spark-body-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.spark-avatar-mini {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #eee;
+    background-size: cover;
+    /* Special Spark Border */
+    border: 3px solid transparent;
+    background-clip: content-box, border-box;
+    background-image: inherit, linear-gradient(to bottom right, #f6d365 0%, #fda085 100%);
+    box-shadow: 0 4px 15px rgba(253, 160, 133, 0.4);
+    flex-shrink: 0;
+}
+
+/* Highlight Agent in Hall */
+.agent-blob.spark-active {
+    border-color: #fda085;
+    box-shadow: 0 0 30px rgba(253, 160, 133, 0.6);
+    animation: spark-pulse 1.5s infinite;
+    z-index: 50;
+}
+
+@keyframes spark-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(253, 160, 133, 0.7); }
+    70% { box-shadow: 0 0 0 15px rgba(253, 160, 133, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(253, 160, 133, 0); }
+}
+
+.spark-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.spark-name {
+    font-weight: 700;
+    color: #2d3748;
+    font-size: 0.95rem;
+    margin-bottom: 2px;
+}
+
+.spark-preview {
+    color: #718096;
+    font-size: 0.8rem;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.spark-actions-row {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-toast-pass {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #e2e8f0;
+    background: transparent;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #718096;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-toast-pass:hover {
+    background: #f7fafc;
+}
+
+.btn-toast-dive {
+    flex: 2;
+    padding: 8px;
+    border: none;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    transition: transform 0.2s;
+}
+
+/* ============================================
+   DEEP DIVE PREVIEW MODAL (Full History)
+   ============================================ */
+
 .spark-modal {
     position: fixed;
     top: 0; left: 0;
     width: 100%; height: 100%;
     background: rgba(0,0,0,0.4);
     backdrop-filter: blur(8px);
-    z-index: 1000;
+    z-index: 2000; /* Higher than Toasts */
     display: none;
     align-items: center;
     justify-content: center;
@@ -118,6 +296,16 @@
     text-align: center;
     box-shadow: 0 20px 50px rgba(0,0,0,0.2);
     position: relative;
+    
+    /* Pop up animation */
+    transform: scale(0.9);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.spark-modal.show .spark-content {
+    transform: scale(1);
+    opacity: 1;
 }
 
 .spark-header {
@@ -176,7 +364,9 @@
     background: #f7fafc;
     border-radius: 16px;
     padding: 20px;
-    min-height: 100px;
+    min-height: 150px;
+    max-height: 300px;
+    overflow-y: auto;
     margin-bottom: 25px;
     text-align: left;
     font-size: 0.95rem;
@@ -185,11 +375,18 @@
 }
 
 .dialogue-line {
-    margin-bottom: 8px;
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    border-radius: 12px;
+    background: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
 
 .dialogue-line strong {
     color: #2d3748;
+    display: block;
+    font-size: 0.8rem;
+    margin-bottom: 4px;
 }
 
 .spark-actions {
@@ -218,4 +415,107 @@
     cursor: pointer;
     font-weight: 700;
     box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* ============================================
+   SPEECH BUBBLES - Mingle Conversations
+   ============================================ */
+
+.speech-bubble {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    background: white;
+    padding: 8px 12px;
+    border-radius: 16px;
+    border-bottom-left-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #2d3748;
+    white-space: nowrap;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    opacity: 0;
+    transition: all 0.3s ease-out;
+    z-index: 100;
+    pointer-events: none;
+}
+
+.speech-bubble.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-8px);
+}
+
+.speech-bubble.starter {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 4px;
+}
+
+.speech-bubble.response {
+    background: #f0fff4;
+    border: 1px solid #9ae6b4;
+    color: #276749;
+}
+
+.speech-bubble.response.negative {
+    background: #fff5f5;
+    border: 1px solid #feb2b2;
+    color: #c53030;
+}
+
+/* Agent emoji styling */
+.agent-emoji {
+    font-size: 1.3rem;
+    line-height: 1;
+}
+
+/* Hall section title */
+.agent-hall-section {
+    margin-bottom: 40px;
+}
+
+.agent-hall-section .section-title {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #2d3748;
+    margin-bottom: 8px;
+}
+
+.agent-hall-section .section-intro {
+    color: #718096;
+    font-size: 1rem;
+    margin-bottom: 20px;
+}
+
+/* Mingle status indicator */
+.mingle-status {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    color: #667eea;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    z-index: 10;
+    animation: fadeInOut 3s ease-in-out infinite;
+}
+
+@keyframes fadeInOut {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
+.mingle-status::before {
+    content: '💬';
+    font-size: 0.9rem;
 }
