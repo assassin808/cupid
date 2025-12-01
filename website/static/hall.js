@@ -1,5 +1,15 @@
 // Agent Hall Logic - "Love First, Know Later" - Living Mingle Version
 
+// Simple hash → pastel color helper
+function hashStringToHue(str) {
+    let hash = 0;
+    if (!str) return 200;
+    for (let i = 0; i < str.length; i++) {
+        hash = (hash * 31 + str.charCodeAt(i)) | 0;
+    }
+    return Math.abs(hash) % 360;
+}
+
 // Global variables
 let hallContainer = null;
 let agents = [];
@@ -167,17 +177,59 @@ function createAgentBlob(id, name, isMe, data = null) {
     
     blob.agentData = data || { id: id, name: name, interests: [] };
 
-    // Content
+    // Content / avatar
     if (isMe) {
-        blob.innerHTML = '<span class="agent-emoji">👤</span>';
+        // Me: use initial-based avatar
+        const initial = name ? name[0].toUpperCase() : 'M';
+        const span = document.createElement('span');
+        span.className = 'agent-initial';
+        span.textContent = initial;
+        blob.appendChild(span);
+        const hue = hashStringToHue(id || name || 'me');
+        blob.style.background = `linear-gradient(135deg, hsl(${hue},80%,85%), hsl(${(hue + 40) % 360},80%,70%))`;
     } else {
-        if (data && data.avatar) {
+        // Check if avatar exists and is valid (not empty, not default.png)
+        const hasValidAvatar = data && data.avatar && 
+                               data.avatar.trim() !== '' && 
+                               data.avatar !== 'default.png' &&
+                               !data.avatar.startsWith('http'); // Skip external URLs for now
+        
+        if (hasValidAvatar) {
+            // Real image avatar - but also set up fallback if image fails to load
+            const img = new Image();
+            img.onerror = () => {
+                // Image failed to load, fallback to colored initial
+                blob.style.backgroundImage = '';
+                const initial = name ? name[0].toUpperCase() : '?';
+                const span = document.createElement('span');
+                span.className = 'agent-initial';
+                span.textContent = initial;
+                blob.innerHTML = '';
+                blob.appendChild(span);
+                const hue = hashStringToHue(id || name || 'agent');
+                blob.style.background = `linear-gradient(135deg, hsl(${hue},80%,85%), hsl(${(hue + 40) % 360},80%,70%))`;
+            };
+            img.onload = () => {
+                // Image loaded successfully
+                blob.style.backgroundImage = `url('/static/avatars/${data.avatar}')`;
+                blob.style.backgroundSize = 'cover';
+                blob.style.backgroundPosition = 'center';
+            };
+            img.src = `/static/avatars/${data.avatar}`;
+            // Set initial state (will be updated by onload/onerror)
             blob.style.backgroundImage = `url('/static/avatars/${data.avatar}')`;
             blob.style.backgroundSize = 'cover';
             blob.style.backgroundPosition = 'center';
             blob.innerHTML = '';
         } else {
-            blob.innerHTML = '<span class="agent-emoji">😊</span>';
+            // No valid image → colored initial circle
+            const initial = name ? name[0].toUpperCase() : '?';
+            const span = document.createElement('span');
+            span.className = 'agent-initial';
+            span.textContent = initial;
+            blob.appendChild(span);
+            const hue = hashStringToHue(id || name || 'agent');
+            blob.style.background = `linear-gradient(135deg, hsl(${hue},80%,85%), hsl(${(hue + 40) % 360},80%,70%))`;
         }
         blob.dataset.info = JSON.stringify(data);
     }

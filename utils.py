@@ -334,7 +334,7 @@ Your action:
             })
             
             # Limit iterations to prevent infinite loops
-            max_iterations = 10
+            max_iterations = 6
             iteration_count = 0
             
             while state['action']['type'] != "end" and iteration_count < max_iterations:

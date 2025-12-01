@@ -23,9 +23,13 @@ app.config['SESSION_COOKIE_NAME'] = 'session'
 app.permanent_session_lifetime = 36000  # session 有效期为 1 小时
 socketio.init_app(app)
 Session(app)
-@app.route('/',methods = ["GET"])
-@app.route('/home',methods = ["GET"])
+@app.route('/', methods=["GET"])
+@app.route('/home', methods=["GET"])
 def Index():
+    # If not logged in, always go to login / guest page
+    if 'logged_user' not in session:
+        return redirect(url_for('login_register'))
+    # Logged-in users go to Home (Agent Hall)
     return render_template("home.html")
 
 
@@ -684,7 +688,7 @@ def hall_agents():
     import random
     candidates = []
     
-    # 1. Try to fetch real users (excluding self)
+    # 1. Try to fetch real users (excluding self, and only those with proper profile)
     try:
         db = dbClient()
         current_user_id = None
@@ -695,14 +699,33 @@ def hall_agents():
         if current_user_id:
             query['_id'] = {'$ne': ObjectId(current_user_id)}
             
-        real_users = list(db.getCollection("Users").find(query, {"password":0}).limit(10))
+        real_users = list(db.getCollection("Users").find(query, {"password": 0}).limit(20))
         
         for user in real_users:
-            info = user.get('information', {})
+            info = user.get('information') or {}
+            nickname = info.get('nickname', '').strip()
+            # Skip users without a proper nickname
+            if not nickname:
+                continue
+            # Skip test users (common test names)
+            nickname_lower = nickname.lower()
+            if nickname_lower in ['test', 'test user', 'testuser', 'user', 'guest', 'demo']:
+                continue
+            # Skip guest users in the hall list to keep focus on bots + real profiles
+            if user.get('is_guest'):
+                continue
+
+            avatar = info.get('avatar', '')
+            # Clean avatar path: if it's empty or default, set to empty string so frontend uses colored initial
+            if avatar and avatar != 'default.png' and 'static/avatars/' in avatar:
+                avatar = avatar.replace('static/avatars/', '')
+            else:
+                avatar = ''  # Empty = use colored initial circle
+
             candidates.append({
                 "id": str(user['_id']),
-                "name": info.get('nickname', 'Mystery Agent'),
-                "avatar": info.get('avatar', 'default.png').replace('static/avatars/', ''),
+                "name": nickname,
+                "avatar": avatar,
                 "gender": info.get('gender', 'neutral'),
                 "bio": info.get('bio', 'Just browsing.'),
                 "type": "real"
@@ -711,22 +734,25 @@ def hall_agents():
         print(f"Error fetching hall agents: {e}")
         
     # 2. Add Bots if not enough (Ensure at least 10 agents for a busy hall)
+    # 一部分用真实照片，其它用彩色首字母头像（avatar 置空）
     bot_pool = [
+        # With photo
         { "id": "bot_1", "name": "Elena", "avatar": "5bc44f2c589383ee6089a4e780bd.jpeg", "gender": "female", "bio": "Loves jazz and coffee.", "type": "bot" },
         { "id": "bot_2", "name": "Marcus", "avatar": "be4a4df66e47a38238e790be206d5c4.jpg", "gender": "male", "bio": "Chef and traveler.", "type": "bot" },
         { "id": "bot_3", "name": "Luna", "avatar": "d0a31e54-9d19-4c41-82dc-5bce0eb2eac9.png", "gender": "female", "bio": "Artist and dreamer.", "type": "bot" },
         { "id": "bot_4", "name": "Alex", "avatar": "ad02ffb259fd1c3255f94fa92255c1c.jpg", "gender": "male", "bio": "Tech enthusiast.", "type": "bot" },
         { "id": "bot_5", "name": "Sophia", "avatar": "990838cfdfef5631d48974231405ce4.jpg", "gender": "female", "bio": "Bookworm.", "type": "bot" },
-        { "id": "bot_6", "name": "Priya", "avatar": "5bc44f2c589383ee6089a4e780bd.jpeg", "gender": "female", "bio": "Lawyer with a passion for debate and fine wine.", "type": "bot" },
-        { "id": "bot_7", "name": "James", "avatar": "be4a4df66e47a38238e790be206d5c4.jpg", "gender": "male", "bio": "Data Scientist. I see patterns in everything, including love.", "type": "bot" },
-        { "id": "bot_8", "name": "Zoe", "avatar": "d0a31e54-9d19-4c41-82dc-5bce0eb2eac9.png", "gender": "female", "bio": "Marine Biologist. Happiest underwater.", "type": "bot" },
-        { "id": "bot_9", "name": "Liam", "avatar": "ad02ffb259fd1c3255f94fa92255c1c.jpg", "gender": "male", "bio": "Musician. Let's make sweet harmony together.", "type": "bot" },
-        { "id": "bot_10", "name": "Ravi", "avatar": "be4a4df66e47a38238e790be206d5c4.jpg", "gender": "male", "bio": "Architect. Building foundations for a lasting relationship.", "type": "bot" },
-        { "id": "bot_11", "name": "Mei", "avatar": "990838cfdfef5631d48974231405ce4.jpg", "gender": "female", "bio": "Tea sommelier. Life is too short for bad tea.", "type": "bot" },
-        { "id": "bot_12", "name": "Oliver", "avatar": "ad02ffb259fd1c3255f94fa92255c1c.jpg", "gender": "male", "bio": "Startup founder. Building the future, one bug at a time.", "type": "bot" },
-        { "id": "bot_13", "name": "Ava", "avatar": "5bc44f2c589383ee6089a4e780bd.jpeg", "gender": "female", "bio": "Yoga instructor. Namaste in bed.", "type": "bot" },
-        { "id": "bot_14", "name": "Ethan", "avatar": "be4a4df66e47a38238e790be206d5c4.jpg", "gender": "male", "bio": "Adventure photographer. Will travel for sunsets.", "type": "bot" },
-        { "id": "bot_15", "name": "Isabella", "avatar": "d0a31e54-9d19-4c41-82dc-5bce0eb2eac9.png", "gender": "female", "bio": "Wine enthusiast. Grape expectations.", "type": "bot" }
+        # Colored initial avatars (no photo file)
+        { "id": "bot_6", "name": "Priya", "avatar": "", "gender": "female", "bio": "Lawyer with a passion for debate and fine wine.", "type": "bot" },
+        { "id": "bot_7", "name": "James", "avatar": "", "gender": "male", "bio": "Data Scientist. I see patterns in everything, including love.", "type": "bot" },
+        { "id": "bot_8", "name": "Zoe", "avatar": "", "gender": "female", "bio": "Marine Biologist. Happiest underwater.", "type": "bot" },
+        { "id": "bot_9", "name": "Liam", "avatar": "", "gender": "male", "bio": "Musician. Let's make sweet harmony together.", "type": "bot" },
+        { "id": "bot_10", "name": "Ravi", "avatar": "", "gender": "male", "bio": "Architect. Building foundations for a lasting relationship.", "type": "bot" },
+        { "id": "bot_11", "name": "Mei", "avatar": "", "gender": "female", "bio": "Tea sommelier. Life is too short for bad tea.", "type": "bot" },
+        { "id": "bot_12", "name": "Oliver", "avatar": "", "gender": "male", "bio": "Startup founder. Building the future, one bug at a time.", "type": "bot" },
+        { "id": "bot_13", "name": "Ava", "avatar": "", "gender": "female", "bio": "Yoga instructor. Namaste in bed.", "type": "bot" },
+        { "id": "bot_14", "name": "Ethan", "avatar": "", "gender": "male", "bio": "Adventure photographer. Will travel for sunsets.", "type": "bot" },
+        { "id": "bot_15", "name": "Isabella", "avatar": "", "gender": "female", "bio": "Wine enthusiast. Grape expectations.", "type": "bot" }
     ]
     
     # Add bots to fill up to 10 agents
