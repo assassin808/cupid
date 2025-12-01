@@ -32,7 +32,9 @@ function initHall() {
         .then(res => res.json())
         .then(data => {
             if (data.status === 'ok') {
-                data.agents.forEach(agent => {
+                // Limit to 6 agents for cleaner look
+                const limitedAgents = data.agents.slice(0, 6);
+                limitedAgents.forEach(agent => {
                     createAgentBlob(agent.id, agent.name, false, agent);
                 });
             }
@@ -48,12 +50,20 @@ function createAgentBlob(id, name, isMe, data = null) {
     blob.className = `agent-blob ${isMe ? 'me' : 'other'}`;
     blob.id = `agent-${id}`;
     
-    // Initial Random Position
-    const x = Math.random() * (hallContainer.offsetWidth - 60);
-    const y = Math.random() * (hallContainer.offsetHeight - 60);
+    // Initial Position - Centered with spread
+    const centerX = hallContainer.offsetWidth / 2;
+    const centerY = hallContainer.offsetHeight / 2;
+    // Spread within 60% of container to ensure they are visible
+    const spreadX = hallContainer.offsetWidth * 0.3;
+    const spreadY = hallContainer.offsetHeight * 0.3;
     
-    blob.style.left = `${x}px`;
-    blob.style.top = `${y}px`;
+    const x = centerX + (Math.random() - 0.5) * 2 * spreadX - 30; // -30 for half blob size
+    const y = centerY + (Math.random() - 0.5) * 2 * spreadY - 30;
+    
+    // Use transform for positioning from the start
+    blob.style.left = '0px';
+    blob.style.top = '0px';
+    blob.style.transform = `translate(${x}px, ${y}px)`;
     
     // Velocity vector (random direction)
     const angle = Math.random() * Math.PI * 2;
@@ -95,32 +105,28 @@ function animateAgents() {
         let vx = parseFloat(blob.dataset.vx);
         let vy = parseFloat(blob.dataset.vy);
         
+        // Gentle Center Gravity
+        // Pull agents slightly towards the center to keep them in view
+        const centerX = width / 2;
+        const centerY = height / 2;
+        const dx = centerX - x;
+        const dy = centerY - y;
+        
+        vx += dx * 0.0002;
+        vy += dy * 0.0002;
+        
         // Move
         x += vx;
         y += vy;
         
-        // Bounce off walls
-        if (x <= 0 || x >= width) {
-            vx *= -1;
-            x = Math.max(0, Math.min(x, width));
+        // Soft Boundaries (Bounce with damping)
+        if (x <= 20 || x >= width - 20) {
+            vx *= -0.8; // Dampen velocity on wall hit
+            x = Math.max(20, Math.min(x, width - 20));
         }
-        if (y <= 0 || y >= height) {
-            vy *= -1;
-            y = Math.max(0, Math.min(y, height));
-        }
-        
-        // Randomly change direction slightly for natural movement
-        if (Math.random() < 0.02) {
-            const angle = Math.random() * Math.PI * 2;
-            const speed = 0.5;
-            vx += Math.cos(angle) * 0.1;
-            vy += Math.sin(angle) * 0.1;
-            // Clamp speed
-            const currentSpeed = Math.sqrt(vx*vx + vy*vy);
-            if (currentSpeed > 1.5) {
-                vx = (vx / currentSpeed) * 1.5;
-                vy = (vy / currentSpeed) * 1.5;
-            }
+        if (y <= 20 || y >= height - 20) {
+            vy *= -0.8;
+            y = Math.max(20, Math.min(y, height - 20));
         }
         
         // Update State
@@ -130,14 +136,16 @@ function animateAgents() {
         blob.dataset.vy = vy;
         
         // Apply Style
-        blob.style.transform = `translate(${x}px, ${y}px)`; // Use transform for performance
-        // We need to remove left/top if we use translate, but here we just update left/top
-        // Actually, best practice is translate, but for simplicity with boundary checking, updating left/top is okay 
-        // BUT `transform` is smoother. Let's stick to left/top for now to match initialization, 
-        // or better: use style.transform completely.
-        // Let's use left/top for simplicity of collision logic for now.
-        blob.style.left = `${x}px`;
-        blob.style.top = `${y}px`;
+        blob.style.transform = `translate(${x}px, ${y}px)`;
+        // Keep left/top at 0 in CSS to strictly use transform for positioning if desired, 
+        // but our init uses left/top. Let's zero them out after first frame or just ignore them.
+        // Actually, mixing left/top and transform is bad. 
+        // Let's reset left/top to 0 in createAgentBlob? No, too invasive.
+        // We simply rely on transform overriding the initial layout position relative to 0,0.
+        // To do this cleanly: we should set left:0, top:0 in CSS and ONLY use transform.
+        // But for now, let's just update left/top to match x/y to be safe with existing CSS.
+        blob.style.left = `0px`; 
+        blob.style.top = `0px`;
     });
     
     checkEncounters();

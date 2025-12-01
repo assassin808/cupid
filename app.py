@@ -586,21 +586,6 @@ def update_user_info():
         return {"status":"ok"}
     except:
         return {"status":"fail","message":"System Error"}
-    
-
-if __name__ == "__main__":
-    socketio.run(app,debug = True,port = 5001, host = '0.0.0.0')
-    
-
-    
-
-
-
-
-
-
-
-
 
 
 @app.route('/api/discovery/candidates', methods=['GET'])
@@ -657,6 +642,7 @@ def hall_agents():
     Get active agents for the Hall.
     Mix of real users and bots for density.
     """
+    import random
     candidates = []
     
     # 1. Try to fetch real users (excluding self)
@@ -686,19 +672,29 @@ def hall_agents():
         print(f"Error fetching hall agents: {e}")
         
     # 2. Add Bots if not enough (Ensure at least 10 agents for a busy hall)
+    bot_pool = [
+        { "id": "bot_1", "name": "Elena", "avatar": "5bc44f2c589383ee6089a4e780bd.jpeg", "gender": "female", "bio": "Loves jazz and coffee.", "type": "bot" },
+        { "id": "bot_2", "name": "Marcus", "avatar": "be4a4df66e47a38238e790be206d5c4.jpg", "gender": "male", "bio": "Chef and traveler.", "type": "bot" },
+        { "id": "bot_3", "name": "Luna", "avatar": "d0a31e54-9d19-4c41-82dc-5bce0eb2eac9.png", "gender": "female", "bio": "Artist and dreamer.", "type": "bot" },
+        { "id": "bot_4", "name": "Alex", "avatar": "ad02ffb259fd1c3255f94fa92255c1c.jpg", "gender": "male", "bio": "Tech enthusiast.", "type": "bot" },
+        { "id": "bot_5", "name": "Sophia", "avatar": "990838cfdfef5631d48974231405ce4.jpg", "gender": "female", "bio": "Bookworm.", "type": "bot" },
+        { "id": "bot_6", "name": "Priya", "avatar": "5bc44f2c589383ee6089a4e780bd.jpeg", "gender": "female", "bio": "Lawyer with a passion for debate and fine wine.", "type": "bot" },
+        { "id": "bot_7", "name": "James", "avatar": "be4a4df66e47a38238e790be206d5c4.jpg", "gender": "male", "bio": "Data Scientist. I see patterns in everything, including love.", "type": "bot" },
+        { "id": "bot_8", "name": "Zoe", "avatar": "d0a31e54-9d19-4c41-82dc-5bce0eb2eac9.png", "gender": "female", "bio": "Marine Biologist. Happiest underwater.", "type": "bot" },
+        { "id": "bot_9", "name": "Liam", "avatar": "ad02ffb259fd1c3255f94fa92255c1c.jpg", "gender": "male", "bio": "Musician. Let's make sweet harmony together.", "type": "bot" },
+        { "id": "bot_10", "name": "Ravi", "avatar": "be4a4df66e47a38238e790be206d5c4.jpg", "gender": "male", "bio": "Architect. Building foundations for a lasting relationship.", "type": "bot" },
+        { "id": "bot_11", "name": "Mei", "avatar": "990838cfdfef5631d48974231405ce4.jpg", "gender": "female", "bio": "Tea sommelier. Life is too short for bad tea.", "type": "bot" },
+        { "id": "bot_12", "name": "Oliver", "avatar": "ad02ffb259fd1c3255f94fa92255c1c.jpg", "gender": "male", "bio": "Startup founder. Building the future, one bug at a time.", "type": "bot" },
+        { "id": "bot_13", "name": "Ava", "avatar": "5bc44f2c589383ee6089a4e780bd.jpeg", "gender": "female", "bio": "Yoga instructor. Namaste in bed.", "type": "bot" },
+        { "id": "bot_14", "name": "Ethan", "avatar": "be4a4df66e47a38238e790be206d5c4.jpg", "gender": "male", "bio": "Adventure photographer. Will travel for sunsets.", "type": "bot" },
+        { "id": "bot_15", "name": "Isabella", "avatar": "d0a31e54-9d19-4c41-82dc-5bce0eb2eac9.png", "gender": "female", "bio": "Wine enthusiast. Grape expectations.", "type": "bot" }
+    ]
+    
+    # Add bots to fill up to 10 agents
     if len(candidates) < 10:
-        candidates.extend([
-            { "id": "bot_1", "name": "Elena", "avatar": "5bc44f2c589383ee6089a4e780bd.jpeg", "gender": "female", "bio": "Loves jazz and coffee.", "type": "bot" },
-            { "id": "bot_2", "name": "Marcus", "avatar": "be4a4df66e47a38238e790be206d5c4.jpg", "gender": "male", "bio": "Chef and traveler.", "type": "bot" },
-            { "id": "bot_3", "name": "Luna", "avatar": "d0a31e54-9d19-4c41-82dc-5bce0eb2eac9.png", "gender": "female", "bio": "Artist and dreamer.", "type": "bot" },
-            { "id": "bot_4", "name": "Alex", "avatar": "ad02ffb259fd1c3255f94fa92255c1c.jpg", "gender": "male", "bio": "Tech enthusiast.", "type": "bot" },
-            { "id": "bot_5", "name": "Sophia", "avatar": "990838cfdfef5631d48974231405ce4.jpg", "gender": "female", "bio": "Bookworm.", "type": "bot" },
-            { "id": "bot_6", "name": "Priya", "avatar": "7da32114-93c5-46e2-a7f7-629955f3784e.png", "gender": "female", "bio": "Lawyer with a passion for debate and fine wine.", "type": "bot" },
-            { "id": "bot_7", "name": "James", "avatar": "88e26321-4473-49c6-8268-673ac7a87ee6.png", "gender": "male", "bio": "Data Scientist. I see patterns in everything, including love.", "type": "bot" },
-            { "id": "bot_8", "name": "Zoe", "avatar": "d0a31e54-9d19-4c41-82dc-5bce0eb2eac9.png", "gender": "female", "bio": "Marine Biologist. Happiest underwater.", "type": "bot" },
-            { "id": "bot_9", "name": "Liam", "avatar": "be4a4df66e47a38238e790be206d5c4.jpg", "gender": "male", "bio": "Musician. Let's make sweet harmony together.", "type": "bot" },
-            { "id": "bot_10", "name": "Ravi", "avatar": "ad02ffb259fd1c3255f94fa92255c1c.jpg", "gender": "male", "bio": "Architect. Building foundations for a lasting relationship.", "type": "bot" }
-        ])
+        needed = 10 - len(candidates)
+        random.shuffle(bot_pool)
+        candidates.extend(bot_pool[:needed])
         
     return {"status": "ok", "agents": candidates}
 
@@ -735,6 +731,18 @@ def hall_check_interest():
             {"speaker": "Partner", "text": "Just pondering the meaning of... pizza toppings."},
             {"speaker": "Me", "text": "Controversial topic. Pineapple or no?"},
             {"speaker": "Partner", "text": "Definitely yes. Don't judge me!"}
+        ],
+        [
+            {"speaker": "Me", "text": "I noticed you from across the room."},
+            {"speaker": "Partner", "text": "Oh really? What caught your attention?"},
+            {"speaker": "Me", "text": "Your smile. It's contagious."},
+            {"speaker": "Partner", "text": "Well, now you've made me smile even more!"}
+        ],
+        [
+            {"speaker": "Me", "text": "What brings you here tonight?"},
+            {"speaker": "Partner", "text": "Looking for interesting conversations. Found one?"},
+            {"speaker": "Me", "text": "I think so. What's the most interesting thing about you?"},
+            {"speaker": "Partner", "text": "I collect vintage maps. Weird, I know."}
         ]
     ]
     
@@ -760,3 +768,88 @@ def hall_check_interest():
         "interested": True, 
         "dialogue": selected_dialogue
     }
+
+
+if __name__ == "__main__":
+    socketio.run(app,debug = True,port = 5001, host = '0.0.0.0')
+
+# Discovery API: Real-time Agent Echo
+@app.route('/api/agent/echo', methods=['POST'])
+def agent_echo():
+    try:
+        data = request.get_json()
+        user_input = data.get('input', '')
+        agent_info = data.get('agent', {})
+        
+        if not user_input or not agent_info:
+            return jsonify({"status": "error", "message": "Missing input"}), 400
+            
+        # Construct a lightweight persona prompt
+        name = agent_info.get('name', 'Stranger')
+        age = agent_info.get('age', 'unknown')
+        occupation = agent_info.get('role', 'unknown')
+        bio = agent_info.get('bio', '')
+        
+        system_prompt = f"""
+        You are playing the role of {name}, a {age}-year-old {occupation}.
+        Your bio: "{bio}"
+        
+        A user has just shouted into the void: "{user_input}"
+        
+        Reply with a SHORT, intriguing sentence (max 15 words).
+        Reflect your persona. If the user is sad, be comforting. If happy, be playful.
+        Do NOT be formal. Be human-like and conversational.
+        """
+        
+        # Initialize Agent (using our utils)
+        agent = Agent(system_prompt, name)
+        
+        # Get response (blocking for now, could be async in production)
+        # We use a special flag or method if needed, but sendMessage works
+        response = agent.sendMessage(user_input)
+        
+        # Clean up response (remove quotes if any)
+        response = response.strip('"')
+        
+        return jsonify({"status": "ok", "reply": response})
+        
+    except Exception as e:
+        print(f"Echo Error: {e}")
+        # Fallback mock response if LLM fails
+        return jsonify({"status": "ok", "reply": "I feel that too."})
+
+# =========================================
+# DISCOVERY API - REAL LLM RESONANCE
+# =========================================
+@app.route('/api/soul_resonance', methods=['POST'])
+def soul_resonance():
+    data = request.get_json()
+    user_input = data.get('input', '')
+    agent_persona = data.get('agent', {})
+    
+    if not user_input or not agent_persona:
+        return jsonify({"response": "..."})
+        
+    # Construct prompt
+    name = agent_persona.get('name', 'Agent')
+    role = agent_persona.get('role', 'Unknown')
+    bio = agent_persona.get('bio', '')
+    
+    system_prompt = f"""You are {name}, a {role}. Bio: {bio}.
+    Someone just shouted into the void: "{user_input}".
+    Reply with a short, resonance thought (max 15 words).
+    Be vague, poetic, or intriguing. Do not be a helpful assistant. Be a soul."""
+    
+    try:
+        # Use existing Agent class for simplicity
+        # Ideally we should use a lighter model or cache this
+        bot = Agent(system_prompt, name)
+        reply = bot.sendMessage(user_input)
+        
+        # Clean up quotes if any
+        reply = reply.strip('"').strip()
+        return jsonify({"response": reply})
+    except Exception as e:
+        print(f"Resonance Error: {e}")
+        return jsonify({"response": "The signal is weak..."})
+
